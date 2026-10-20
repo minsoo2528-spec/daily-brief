@@ -77,7 +77,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 - 코멘트(content.json corp_comment): 현금성자산 상위·증감, 6주 만기 합계와 가장 많은 주, 큰 납입 건.
 
 ## 4-4. 영업 시그널 입력값 (signals.py가 자동 판정)
-- 시그널은 make_brief.py 실행 때 engine/signals.py가 raw 데이터로 자동 판정한다(29개 기준). 기준값은 config.json의 "signals"에 키를 넣어 바꿀 수 있다(키 이름·기본값은 signals.py의 DEFAULT). 휴장일은 config.json "holidays"에 추가(연초에 1년치 갱신).
+- 시그널은 make_brief.py 실행 때 engine/signals.py가 raw 데이터로 자동 판정한다(28개 기준). 기준값은 config.json의 "signals"에 키를 넣어 바꿀 수 있다(키 이름·기본값은 signals.py의 DEFAULT). 휴장일은 config.json "holidays"에 추가(연초에 1년치 갱신).
 - content.json에 매일 채울 값(뉴스·공식 자료에서 확인한 수치만):
   - market.kospi {date, close, chg_pct, src}, market.usdkrw {date, close, chg(원), src} — 지표 기준일 종가.
   - cpi: 이번 주 발표된 한국·미국 CPI [{name, actual, consensus, date}] (예상치가 기사에 없으면 consensus 생략 → 판정 안 함). 지난 발표는 지운다.
