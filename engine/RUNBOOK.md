@@ -128,7 +128,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 3-2. 앱(GitHub Pages) 갱신 — 사용자가 2026-10-20 지시. 주소 https://minsoo2528-spec.github.io/daily-brief/
    - add_repo(owner "minsoo2528-spec", repo "daily-brief", access "push")로 저장소를 붙이고 안내대로 `/home/claude/daily-brief`에 clone(이미 있으면 `git fetch origin main && git reset --hard FETCH_HEAD`).
    - `python3 build_pages.py <엔진폴더> /home/claude/daily-brief` (out/web.html + engine\pages\ → index.html·manifest·아이콘·sw.js).
-   - `git add -A && git commit -m "Daily Brief YYYY-MM-DD"` 후 `git push origin main`. 커밋 메시지 끝에는 세션 안내의 attribution 줄을 붙인다.
+   - `git add -A && git -c user.name=minsoo2528-spec -c user.email=minsoo2528-spec@users.noreply.github.com commit -m "Daily Brief YYYY-MM-DD"` 후 `git push origin main`. 공개 저장소이므로 커밋 작성자에 실제 메일 주소를 쓰지 않는다. 커밋 메시지 끝에는 세션 안내의 attribution 줄을 붙인다.
    - 저장소의 `engine/`은 코드 사본이다. 그날 PC의 코드(*.py, templates, scrapers, pages, RUNBOOK.md)가 바뀌었으면 같이 덮어쓴다. config.json·raw·out·PDF는 절대 올리지 않는다(메일 주소·자금중개 자료).
    - push가 거부되면(권한 만료 등) 앱 갱신만 건너뛰고 알림에 "앱 미갱신(이유)"을 적는다. 다른 저장소에 올리지 않는다.
    - 메일 본문 링크는 claude.ai 페이지(Claude 답변 포함) 그대로 둔다.
