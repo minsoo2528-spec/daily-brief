@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>Daily Market Brief {{ B.meta.date }}</title>
+<style>
+  @page { size: A4; margin: 13mm 13mm 14mm 13mm;
+    @bottom-left { content: "참고자료 · 투자권유 목적 아님 · 각 수치는 출처의 기준일 값"; font: 6.5pt "Noto Sans CJK KR"; color: #8a8984; }
+    @bottom-right { content: counter(page) " / " counter(pages); font: 6.5pt "Noto Sans CJK KR"; color: #8a8984; } }
+  * { box-sizing: border-box; }
+  body { font-family: "Noto Sans CJK KR", sans-serif; font-size: 8.4pt; line-height: 1.5; color: #1d1d1b; margin: 0; }
+  .mast { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.2pt solid #1b2a44; padding-bottom: 5pt; margin-bottom: 7pt; }
+  .mast h1 { font-size: 17pt; margin: 0; letter-spacing: -0.3pt; color: #1b2a44; font-weight: 700; }
+  .mast .sub { font-size: 8pt; color: #52514e; }
+  .mast .meta { text-align: right; font-size: 8pt; color: #52514e; line-height: 1.45; }
+  .mast .meta b { color: #1d1d1b; font-size: 9.5pt; }
+  .tag { display: inline-block; white-space: nowrap; border: 0.8pt solid #b4472a; color: #b4472a; font-size: 6.8pt; padding: 0 4pt; border-radius: 2pt; margin-left: 4pt; vertical-align: 1pt; }
+  .summary { background: #f3f2ee; border-left: 3pt solid #1b2a44; padding: 6pt 9pt; margin-bottom: 8pt; }
+  .summary h3 { margin: 0 0 2pt; font-size: 8.6pt; color: #1b2a44; }
+  .summary ul { margin: 0; padding-left: 12pt; }
+  .summary li { margin: 1pt 0; }
+  h2 { font-size: 10.5pt; color: #1b2a44; margin: 9pt 0 4pt; padding-bottom: 2pt; border-bottom: 0.6pt solid #c9c8c2; }
+  h2 .num { display: inline-block; background: #1b2a44; color: #fff; width: 13pt; height: 13pt; border-radius: 2pt; text-align: center; font-size: 8pt; line-height: 13pt; margin-right: 5pt; vertical-align: 1pt; }
+  h4 { font-size: 8.4pt; margin: 4pt 0 2pt; color: #1d1d1b; }
+  .cols { display: flex; gap: 10pt; }
+  .cols > div { flex: 1; min-width: 0; }
+  ul.news { margin: 0; padding-left: 11pt; }
+  ul.news li { margin: 2pt 0; }
+  .src { color: #8a8984; font-size: 6.8pt; }
+  table.rt { width: 100%; border-collapse: collapse; font-size: 7.8pt; }
+  table.rt th { font-weight: 500; color: #52514e; border-bottom: 0.8pt solid #1d1d1b; padding: 2pt 3pt; text-align: right; line-height: 1.2; font-size: 7.2pt; }
+  table.rt td { padding: 1.6pt 3pt; text-align: right; border-bottom: 0.4pt solid #e4e3df; font-variant-numeric: tabular-nums; }
+  table.rt .l { text-align: left; }
+  table.rt td.v { font-weight: 700; }
+  .note { font-size: 6.5pt; color: #8a8984; font-weight: 400; }
+  .unit { font-size: 6.5pt; color: #8a8984; text-align: right; margin-top: 1pt; }
+  .chart { width: 100%; }
+  .chart-t { font-size: 7.6pt; font-weight: 700; margin: 4pt 0 0; }
+  .comment { background: #f7f6f3; padding: 5pt 7pt; margin-top: 5pt; border-radius: 2pt; }
+  .comment b { color: #1b2a44; }
+  .manual { border: 1pt dashed #b4472a; border-radius: 3pt; padding: 5pt 7pt; margin-top: 5pt; background: #fdf8f6; }
+  .manual .mh { color: #b4472a; font-weight: 700; font-size: 7.6pt; }
+  table.mt { width: 100%; border-collapse: collapse; font-size: 7.6pt; margin-top: 2pt; }
+  table.mt td, table.mt th { border-bottom: 0.4pt solid #ecd9d2; padding: 2pt 3pt; text-align: right; }
+  table.mt th { font-weight: 500; color: #52514e; }
+  table.mt .l { text-align: left; }
+  table.mt .blank { color: #c9a89c; }
+  table.cal { width: 100%; border-collapse: collapse; font-size: 7.8pt; }
+  table.cal td { padding: 2.2pt 3pt; border-bottom: 0.4pt solid #e4e3df; vertical-align: top; }
+  table.cal td.d { white-space: nowrap; font-weight: 700; width: 58pt; }
+  .chk { color: #b4472a; font-size: 6.8pt; }
+  table.ofc { width: 100%; border-collapse: collapse; font-size: 7.8pt; }
+  table.ofc th { font-weight: 500; color: #52514e; border-bottom: 0.8pt solid #1d1d1b; padding: 2pt 3pt; text-align: right; font-size: 7.2pt; }
+  table.ofc td { padding: 1.6pt 3pt; text-align: right; border-bottom: 0.4pt solid #e4e3df; }
+  table.ofc .l { text-align: left; }
+  .pb { page-break-before: always; }
+  .sources { margin-top: 6pt; font-size: 6.2pt; color: #6b6a66; line-height: 1.45; border-top: 0.6pt solid #c9c8c2; padding-top: 4pt; }
+  .sources b { color: #52514e; }
+
+  table.art { width: 100%; border-collapse: collapse; }
+  table.art td { padding: 3pt 4pt; border-bottom: 0.4pt solid #e4e3df; vertical-align: top; }
+  table.art td.kf { width: 74pt; border-right: 0.4pt solid #e4e3df; }
+  table.art td.kf b { display: block; font-size: 10.5pt; color: #1b2a44; }
+  table.art td.kf span { font-size: 6.4pt; color: #8a8984; line-height: 1.25; display: block; }
+  a { color: #1b2a44; font-weight: 700; text-decoration: none; border-bottom: 0.5pt solid #9bb0d0; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 6pt; }
+  .tile { width: calc(33.33% - 4pt); border: 0.6pt solid #d9d8d2; border-radius: 3pt; padding: 5pt 6pt; break-inside: avoid; }
+  .tile .cat { font-size: 6.5pt; font-weight: 700; color: #52514e; letter-spacing: 0.3pt; }
+  .tile .big { font-size: 14pt; font-weight: 700; color: #1b2a44; line-height: 1.15; margin-top: 1pt; }
+  .tile .lab { font-size: 6.3pt; color: #8a8984; line-height: 1.25; }
+  .tile .tt { font-size: 7.8pt; margin-top: 3pt; line-height: 1.35; }
+  .tile .sm { font-size: 7pt; color: #52514e; line-height: 1.4; margin-top: 2pt; }
+  table.wk { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 6.9pt; }
+  table.wk th { font-weight: 700; text-align: left; border-bottom: 0.8pt solid #1d1d1b; padding: 2pt 3pt; }
+  table.wk td { border-bottom: 0.4pt solid #e4e3df; padding: 2pt 3pt; vertical-align: top; }
+  table.wk .rh { width: 52pt; color: #52514e; font-weight: 700; }
+  table.wk .today { background: #f1f3f7; }
+  table.wk .it { display: flex; justify-content: space-between; gap: 3pt; }
+  table.wk .p { color: #0f7a55; } table.wk .m { color: #b4472a; }
+  table.wk .ev { background: #1b2a44; color: #fff; padding: 0 3pt; border-radius: 2pt; font-weight: 700; }
+  table.wk tr.tot td { font-weight: 700; } table.wk td.n { text-align: right; }
+  table.mon { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 6.6pt; }
+  table.mon th { font-weight: 500; color: #52514e; border: 0.4pt solid #d9d8d2; padding: 1.5pt; }
+  table.mon td { border: 0.4pt solid #d9d8d2; height: 44pt; vertical-align: top; padding: 2pt; }
+  table.mon td.out { background: #f6f6f3; color: #b7b6b0; }
+  table.mon td.today { outline: 1.2pt solid #2a78d6; outline-offset: -1.2pt; }
+  table.mon .dn { font-weight: 700; font-size: 7pt; }
+  table.mon .e { background: #eef1f5; border-radius: 2pt; padding: 0.5pt 2pt; margin-top: 1.5pt; line-height: 1.25; }
+  table.mon .e.key { background: #1b2a44; color: #fff; }
+  table.deals td, table.deals th { font-size: 6.6pt; white-space: nowrap; }
+  table.mon .e.corp { background: #e3f4ec; color: #14573d; }
+</style></head><body>
+<div class="mast">
+  <div>
+    <h1>Daily Market Brief</h1>
+    <div class="sub">{{ B.meta.team }} · 매크로 · 수익증권 · 채권 · 단기자금</div>
+  </div>
+  <div class="meta"><b>{{ B.meta.label }}</b><br>{{ B.meta.asof }}</div>
+</div>
+
+<div class="summary">
+  <h3>오늘의 요약</h3>
+  <ul>{% for t in summary %}<li>{{ t }}</li>{% endfor %}</ul>
+</div>
+
+<h2><span class="num">1</span>매크로 시황</h2>
+<table class="art">{% for m in B.macro %}<tr><td class="kf"><b>{{ m.key }}</b><span>{{ m.key_label }}</span></td>
+<td><a href="{{ m.url }}">{{ m.title }}</a> <span class="src">{{ m.outlet }} · {{ m.date_label }}</span><br>{{ m.body }}</td></tr>{% endfor %}</table>
+<div class="unit">제목을 누르면 원문 기사로 연결됩니다</div>
+
+{% set R = B.realestate %}
+<h2><span class="num">2</span>수익증권 시황 — 부동산 중심</h2>
+<div class="tiles">{% for n in R.news %}<div class="tile"><div class="cat">{{ n.cat }}</div><div class="big">{{ n.key }}</div><div class="lab">{{ n.key_label }}</div>
+<div class="tt"><a href="{{ n.url }}">{{ n.title }}</a></div><div class="src">{{ n.outlet }} · {{ n.date_label }}</div><div class="sm">{{ n.summary }}</div></div>{% endfor %}</div>
+<h4 style="margin-top:6pt">펀드 유형별 자금흐름 <span class="note">일간 · {{ R.flows.asof }} 하루 기준 (월 누적 아님)</span></h4>
+<div class="cols">
+  <div style="flex:1.25">
+    <table class="rt"><thead><tr><th class="l">유형</th><th>설정원본</th><th>공모</th><th>사모</th><th>순유입 계</th></tr></thead><tbody>
+    {% for r in R.flows.rows %}<tr><td class="l">{{ r[0] }}</td><td>{{ '-' if r[1] is none else '%.1f조'|format(r[1]) }}</td><td>{{ sgn(r[2]) }}</td><td>{{ sgn(r[3]) }}</td><td class="v">{{ sgn(r[4]) }}</td></tr>{% endfor %}
+    </tbody></table>
+    <div class="unit">{{ R.flows.note }}</div>
+  </div>
+  <div><div class="comment" style="margin-top:0"><b>코멘트</b> {{ R.flows_comment }} <span class="src">FreeSIS</span></div></div>
+</div>
+
+{% macro rtable(head, rows, unit) -%}
+<table class="rt"><thead><tr><th class="l">구분</th>{% for h in head %}<th>{{ h }}</th>{% endfor %}</tr></thead><tbody>
+{% for r in rows %}<tr><td class="l">{{ r[0] }}</td><td class="v">{{ r[1] }}</td><td>{{ r[2] }}</td><td>{{ r[3] }}</td><td>{{ r[4] }}</td></tr>{% endfor %}
+</tbody></table><div class="unit">{{ unit }}</div>
+{%- endmacro %}
+
+<div class="pb"></div>
+{% set D = B.bond %}
+<h2><span class="num">3</span>채권 시황</h2>
+<div class="cols">
+  <div>{{ rtable(D.head, D.rates, '금리 %, 변동 bp') }}</div>
+  <div>
+    <div class="chart-t">국고채 수익률 곡선</div>
+    <img class="chart" src="{{ C.curve }}">
+    <h4>스프레드</h4>{{ rtable(D.head, D.spreads, '스프레드 bp, 변동 bp') }}
+    <h4>미 국채</h4>{{ rtable(D.head, D.us, '금리 %, 변동 bp · 미 재무부 고시 기준') }}
+  </div>
+</div>
+<div class="comment"><b>코멘트</b> {{ D.comment }}</div>
+
+{% if D.issue %}{% set I = D.issue %}
+<div class="pb"></div>
+<h4>공모 회사채 수요예측 — 누가 샀나 <span class="note">DART · {{ I.window }} · 억원</span></h4>
+<div class="unit" style="text-align:left;margin-bottom:3pt">{{ I.n }}건 발행 {{ '{:,}'.format(I.amt) }}억 · 총 수요 {{ '{:,}'.format(I.demand) }}억({{ '%.1f'|format(I.demand / I.amt) }}배) · 참여 비중 {% for x in I.share %}{{ x[0] }} {{ x[2] }}%{% if not loop.last %} · {% endif %}{% endfor %}</div>
+<table class="rt deals"><thead><tr><th class="l">발행사</th><th>등급</th><th>수요예측</th><th>발행액</th><th>수요</th><th>운용사 / 증권사 / 연기금·은행·보험 %</th><th>확정 가산금리</th><th>확정 금리</th></tr></thead><tbody>
+{% for r in I.rows %}<tr><td class="l"><a href="{{ r.url }}">{{ r.corp }}</a> <span class="note">{{ r.kind }}</span></td><td>{{ r.grade }}</td><td>{{ r.dfd }}</td><td>{{ '{:,}'.format(r.amt) }}</td><td>{% if r.demand %}{{ '{:,}'.format(r.demand) }} <span class="note">{{ r.ratio }}배</span>{% else %}-{% endif %}</td><td>{% if r.share %}{{ r.share|join(' / ') }}{% else %}-{% endif %}</td><td>{{ r.spread }}{% if r.band %} <span class="note">밴드 {{ r.band }}</span>{% endif %}</td><td>{{ r.rate }}</td></tr>{% endfor %}
+</tbody></table>
+{% if I.upcoming %}<div class="unit" style="text-align:left">이번 주 수요예측: {% for u in I.upcoming %}{{ u.dfd }} {{ u.corp }}({{ u.kind }}·{{ u.grade }}, {{ '{:,}'.format(u.amt) }}억, {{ u.band }}){% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+<div class="unit">{{ I.note }}</div>
+{% endif %}
+{% if D.investors %}{% set V = D.investors %}
+<h4 style="margin-top:6pt">투자자별 장외 순매수 — {{ V.mtd }} 누적 <span class="note">억원 · 금투협 채권정보센터</span></h4>
+<table class="rt"><thead><tr><th class="l">투자자</th>{% for h in V.head %}<th>{{ h }}</th>{% endfor %}<th>{{ V.d0 }} 하루</th></tr></thead><tbody>
+{% for r in V.tm[:7] %}<tr><td class="l">{{ r[0] }}</td>{% for v in r[1:] %}<td{% if loop.last %} class="v"{% endif %}>{{ sgn(v) }}</td>{% endfor %}<td>{{ sgn(V.t0[loop.index0][-1]) }}</td></tr>{% endfor %}
+</tbody></table>
+<div class="unit">{{ V.note }}</div>
+{% endif %}
+{% if D.cp %}{% set P = D.cp %}
+<h4 style="margin-top:6pt">CP 만기별 금리·잔액 <span class="note">{{ P.asof }} · 금투협 CP정보 · 잔액 {{ P.bal_total }}조 (1주 {{ sgn(P.chg_w, 1) }}조 · {{ P.q_label }} 대비 {{ sgn(P.chg_q, 1) }}조)</span></h4>
+<table class="rt"><thead><tr><th class="l">구분</th>{% for b in P.buckets %}<th>{{ b }}</th>{% endfor %}</tr></thead><tbody>
+<tr><td class="l">할인 금리(%)</td>{% for v in P.disc_rate %}<td>{{ '%.2f'|format(v) if v is not none else '-' }}</td>{% endfor %}</tr>
+<tr><td class="l">매출 금리(%)</td>{% for v in P.sale_rate %}<td>{{ '%.2f'|format(v) if v is not none else '-' }}</td>{% endfor %}</tr>
+<tr><td class="l">잔액(조)</td>{% for v in P.bal %}<td>{{ '%.1f'|format(v) }}</td>{% endfor %}</tr>
+</tbody></table>
+<div class="unit">{{ P.note }}</div>
+{% endif %}
+{% if D.flow_comment %}<div class="comment"><b>코멘트</b> {{ D.flow_comment }} <span class="src">DART·금투협</span></div>{% endif %}
+
+<div class="pb"></div>
+{% set M = B.money %}{% set S = M.supply %}
+<h2><span class="num">4</span>단기자금시장 시황</h2>
+<div class="cols">
+  <div>{{ rtable(D.head, M.rates, '금리 %, 변동 bp') }}
+    <div class="comment"><b>코멘트</b> {{ M.rates_comment }}</div></div>
+  <div><div class="chart-t">CD 91일 vs CP 91일 ({{ M.cpcd.x[0] }}~{{ M.cpcd.x[-1] }})</div><img class="chart" src="{{ C.cpcd }}"></div>
+</div>
+
+<h4 style="margin-top:6pt">단기자금 수급 — MMF·Repo <span class="note">최근 1년 일별 ({{ S.period }})</span></h4>
+<div class="chart-t">MMF 설정원본 vs Repo 잔액 (조원)</div><img class="chart" src="{{ C.trend }}">
+<div class="chart-t" style="margin-top:4pt">Repo 주요 자금공급자 매수 잔액 (조원)</div><img class="chart" src="{{ C.buyers }}">
+<div class="cols" style="margin-top:4pt">
+  <div>
+    <table class="rt"><tbody>
+      <tr><td class="l">MMF 설정원본 <span class="note">({{ S.mmf.latest.asof }})</span></td><td class="v">{{ '%.1f'|format(S.mmf.latest.total) }}조</td><td></td><td></td></tr>
+      <tr><td class="l">　유입 내역 <span class="note">({{ S.mmf.asof }})</span></td><td>{{ '%.1f'|format(S.mmf.total) }}조</td><td>전일 {{ sgn(S.mmf.dod_eok) }}억</td><td>전월말 {{ sgn(S.mmf.mtd_jo, 1) }}조</td></tr>
+      <tr><td class="l">　공모</td><td>{{ '%.1f'|format(S.mmf.public) }}조</td><td>순유입 {{ sgn(S.mmf.flow_public_eok) }}억</td><td></td></tr>
+      <tr><td class="l">　사모</td><td>{{ '%.1f'|format(S.mmf.private) }}조</td><td>순유입 {{ sgn(S.mmf.flow_private_eok) }}억</td><td></td></tr>
+      <tr><td class="l">Repo 잔액 <span class="note">({{ S.repo.asof }})</span></td><td class="v">{{ '%.1f'|format(S.repo.total) }}조</td><td>전일 {{ sgn(S.repo.dod_eok) }}억</td><td>전월말 {{ sgn(S.repo.mtd_jo, 1) }}조</td></tr>
+    </tbody></table>
+    <div class="unit">MMF: 금투협 FreeSIS 펀드 기준(투자일임 제외) · Repo: 예탁원 SEIBro 원화 매매잔액</div>
+  </div>
+  <div>
+    <table class="rt"><thead><tr><th class="l">MMF 고객유형 <span class="note">({{ S.clients.asof }} 판매잔고)</span></th><th>잔고</th><th>비중</th></tr></thead><tbody>
+    {% for r in S.clients.rows %}<tr><td class="l">{{ r[0] }}</td><td>{{ '%.1f'|format(r[1]) }}조</td><td>{{ '%.1f'|format(r[2]) }}%</td></tr>{% endfor %}
+    <tr><td class="l">합계</td><td class="v">{{ '%.1f'|format(S.clients.total) }}조</td><td>100%</td></tr></tbody></table>
+    <div class="unit">월별 통계 · 판매사 판매잔고 기준이라 설정원본과 차이</div>
+  </div>
+</div>
+<div class="comment"><b>코멘트</b> {{ S.comment }} <span class="src">FreeSIS·SEIBro</span></div>
+
+{% if M.corp and M.corp.events %}{% set E = M.corp.events %}
+<h4 style="margin-top:6pt">회사채 만기 도래·공모채 납입 <span class="note">{{ E.window }} · 공모(주식연계채 제외) · 억원</span></h4>
+<div class="cols">
+  <div style="flex:0.8"><table class="rt"><thead><tr><th class="l">주</th><th>만기 금액</th><th>건수</th></tr></thead><tbody>
+  {% for w in E.weeks %}<tr><td class="l">{{ w[0] }}</td><td>{{ '{:,}'.format(w[1]) }}</td><td>{{ w[2] }}</td></tr>{% endfor %}
+  <tr><td class="l">합계</td><td class="v">{{ '{:,}'.format(E.mat_total) }}</td><td></td></tr></tbody></table>
+  <table class="rt" style="margin-top:4pt"><thead><tr><th class="l">납입일</th><th class="l">발행사</th><th>금액</th></tr></thead><tbody>
+  {% for x in E.payins %}<tr><td class="l">{{ x.d }}</td><td class="l">{{ x.issuer }} <span class="note">{{ x.kind }}</span></td><td>{{ '{:,}'.format(x.amt) }}</td></tr>{% endfor %}</tbody></table></div>
+  <div><table class="rt"><thead><tr><th class="l">만기일</th><th class="l">발행사 (1,000억 이상)</th><th>금액</th><th>표면금리</th></tr></thead><tbody>
+  {% for x in E.big[:16] %}<tr><td class="l">{{ x.d }}</td><td class="l">{{ x.issuer }}</td><td>{{ '{:,}'.format(x.amt|int) }}</td><td>{% set c3 = '%.3f'|format(x.cpn) %}{{ c3[:-1] if c3.endswith('0') else c3 }}%</td></tr>{% endfor %}</tbody></table>
+  {% if E.big|length > 16 %}<div class="unit">외 {{ E.big|length - 16 }}건은 팀 웹페이지 참고</div>{% endif %}</div>
+</div>
+<div class="unit">{{ E.src.maturities }}</div>
+{% endif %}
+
+{% if M.kmb and include_kmb %}{% set K = M.kmb %}
+<h4 style="margin-top:6pt">지준·콜·레포 동향 <span class="note">{{ K.source }} {{ K.asof }}</span></h4>
+<div class="cols">
+  <div style="flex:0.8">
+    <table class="rt"><tbody>{% for r in K.kpis %}<tr><td class="l">{{ r[0] }}</td><td class="v">{{ r[1] }}</td><td><span class="note">{{ r[2] }}</span></td></tr>{% endfor %}</tbody></table>
+    <div class="unit">{{ K.note }}</div>
+  </div>
+  <div><ul class="news">{% for x in K.bullets %}<li><b>{{ x.title }}</b> — {{ x.body }}</li>{% endfor %}</ul></div>
+</div>
+{% endif %}
+
+
+<div class="pb"></div>
+<h2><span class="num">5</span>자금·이벤트 캘린더</h2>
+{% set W = B.reserve_week %}
+{% if W and include_kmb %}
+<h4>주간 지준 요인 <span class="note">{{ W.source }} {{ W.asof }} · 억원</span></h4>
+<table class="wk"><thead><tr><th class="rh">구분</th>{% for d in W.days %}<th{% if d.date == B.meta.date %} class="today"{% endif %}>{{ d.d }} <span class="note">{{ d.w }}{% if d.date == B.meta.date %} · 오늘{% endif %}</span></th>{% endfor %}</tr></thead><tbody>
+<tr><td class="rh">이벤트</td>{% for d in W.days %}<td{% if d.date == B.meta.date %} class="today"{% endif %}>{% for e in d.events %}<span class="ev">{{ e }}</span>{% else %}-{% endfor %}</td>{% endfor %}</tr>
+<tr><td class="rh">공급 요인 (+)</td>{% for d in W.days %}<td{% if d.date == B.meta.date %} class="today"{% endif %}>{% for x in d.supply %}<div class="it"><span>{{ x[0] }}</span><span class="p">{{ '{:,}'.format(x[1]) }}</span></div>{% endfor %}</td>{% endfor %}</tr>
+<tr><td class="rh">환수 요인 (−)</td>{% for d in W.days %}<td{% if d.date == B.meta.date %} class="today"{% endif %}>{% for x in d.withdraw %}<div class="it"><span>{{ x[0] }}</span><span class="m">{{ '{:,}'.format(x[1]) }}</span></div>{% endfor %}</td>{% endfor %}</tr>
+<tr class="tot"><td class="rh">지준 당일</td>{% for d in W.days %}<td class="n{% if d.date == B.meta.date %} today{% endif %}">{{ '{:,}'.format(d.daily) }}</td>{% endfor %}</tr>
+<tr class="tot"><td class="rh">지준 적수</td>{% for d in W.days %}<td class="n{% if d.date == B.meta.date %} today{% endif %}">{{ '{:,}'.format(d.cum) }}</td>{% endfor %}</tr>
+</tbody></table>
+<div class="unit">{{ W.note }}</div>
+{% endif %}
+<h4 style="margin-top:8pt">{{ month.title }}</h4>
+<table class="mon"><thead><tr>{% for x in ['월','화','수','목','금','토','일'] %}<th>{{ x }}</th>{% endfor %}</tr></thead><tbody>
+{% for wk in month.weeks %}<tr>{% for c in wk %}<td class="{% if not c['in'] %}out{% endif %}{% if c.today %} today{% endif %}"><div class="dn">{{ c.day }}</div>{% for e in c.events %}<div class="e{% if e.key %} key{% endif %}{% if e.tag == 'corp' %} corp{% endif %}">{{ e.text }}</div>{% endfor %}</td>{% endfor %}</tr>{% endfor %}
+</tbody></table>
+{% if month.outside %}<div class="unit" style="text-align:left">다음 달: {% for e in month.outside %}{{ e.d }}({{ e.w }}) {{ e.text }}{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}
+{% if include_kmb %}<div class="unit">국고채·통안채·한은 RP·공모주 일정은 한국자금중개 지준 요인표 기준 · 국고채 입찰은 발행 1영업일 전</div>{% endif %}
+
+<div class="sources"><b>출처</b> {{ srcs|join(' · ') }}<br>
+본 자료는 공개 통계와 언론 보도를 정리한 참고자료이며 특정 상품의 투자권유를 목적으로 하지 않습니다. 수치는 각 출처의 기준일 값입니다.</div>
+</body></html>

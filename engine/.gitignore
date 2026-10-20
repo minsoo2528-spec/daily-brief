@@ -1,0 +1,8 @@
+# 실제 설정(메일 주소)·원자료·생성물·자금중개 PDF는 저장소에 올리지 않는다
+config.json
+raw/
+out/
+archive/
+inbox/
+*.pdf
+__pycache__/

@@ -1,0 +1,21 @@
+{
+ "client_pdf_include_kmb": true,
+ "_note": "한국자금중개 자료 활용 협의 완료(2026-10-19 사용자 확인). 고객용 PDF와 팀 웹페이지 모두에 자금중개 자료를 넣는다.",
+ "holidays": [
+  "2026-10-05",
+  "2026-10-09",
+  "2026-12-25",
+  "2027-01-01"
+ ],
+ "signals": {
+  "_note": "시그널 기준값. 바꾸면 다음 실행부터 반영. 전체 목록과 기본값은 engine/signals.py의 DEFAULT 참고"
+ },
+ "email": {
+  "_note": "팀 메일 자동 발송(9시 실행 끝). 받는 사람을 추가하려면 team_to에 주소를 넣는다. 고객 메일은 자동 발송하지 않는다.",
+  "team_to": [
+   "받는 사람 주소 (실제 주소는 PC의 config.json에만 보관)"
+  ],
+  "web_url": "https://claude.ai/artifact/A9xGuRin8tpMD7bPNiiG1i"
+ },
+ "_note_example": "예시 파일 — 실제 config.json(메일 주소 포함)은 저장소에 올리지 않는다"
+}
