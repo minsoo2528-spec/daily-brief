@@ -1,23 +1,24 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><title>Daily Market Brief {{ B.meta.date }}</title>
+<html lang="ko"><head><meta charset="utf-8"><title>Fund Sales Daily Brief {{ B.meta.date }}</title>
 <style>
   @page { size: A4; margin: 13mm 13mm 14mm 13mm;
     @bottom-left { content: "참고자료 · 투자권유 목적 아님 · 각 수치는 출처의 기준일 값"; font: 6.5pt "Noto Sans CJK KR"; color: #8a8984; }
     @bottom-right { content: counter(page) " / " counter(pages); font: 6.5pt "Noto Sans CJK KR"; color: #8a8984; } }
   * { box-sizing: border-box; }
   body { font-family: "Noto Sans CJK KR", sans-serif; font-size: 8.4pt; line-height: 1.5; color: #1d1d1b; margin: 0; }
-  .mast { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.2pt solid #1b2a44; padding-bottom: 5pt; margin-bottom: 7pt; }
-  .mast h1 { font-size: 17pt; margin: 0; letter-spacing: -0.3pt; color: #1b2a44; font-weight: 700; }
+  .mast { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2.2pt solid #f47321; padding-bottom: 5pt; margin-bottom: 7pt; }
+  .mast h1 { font-size: 17pt; margin: 0; letter-spacing: -0.3pt; color: #2d2d2d; font-weight: 700; }
   .mast .sub { font-size: 8pt; color: #52514e; }
   .mast .meta { text-align: right; font-size: 8pt; color: #52514e; line-height: 1.45; }
   .mast .meta b { color: #1d1d1b; font-size: 9.5pt; }
+  .mast .meta img.ci { height: 15pt; width: auto; margin-bottom: 3pt; }
   .tag { display: inline-block; white-space: nowrap; border: 0.8pt solid #b4472a; color: #b4472a; font-size: 6.8pt; padding: 0 4pt; border-radius: 2pt; margin-left: 4pt; vertical-align: 1pt; }
-  .summary { background: #f3f2ee; border-left: 3pt solid #1b2a44; padding: 6pt 9pt; margin-bottom: 8pt; }
-  .summary h3 { margin: 0 0 2pt; font-size: 8.6pt; color: #1b2a44; }
+  .summary { background: #fef0e7; border-left: 3pt solid #f47321; padding: 6pt 9pt; margin-bottom: 8pt; }
+  .summary h3 { margin: 0 0 2pt; font-size: 8.6pt; color: #2d2d2d; }
   .summary ul { margin: 0; padding-left: 12pt; }
   .summary li { margin: 1pt 0; }
-  h2 { font-size: 10.5pt; color: #1b2a44; margin: 9pt 0 4pt; padding-bottom: 2pt; border-bottom: 0.6pt solid #c9c8c2; }
-  h2 .num { display: inline-block; background: #1b2a44; color: #fff; width: 13pt; height: 13pt; border-radius: 2pt; text-align: center; font-size: 8pt; line-height: 13pt; margin-right: 5pt; vertical-align: 1pt; }
+  h2 { font-size: 10.5pt; color: #2d2d2d; margin: 9pt 0 4pt; padding-bottom: 2pt; border-bottom: 0.6pt solid #c9c8c2; }
+  h2 .num { display: inline-block; background: #f47321; color: #fff; width: 13pt; height: 13pt; border-radius: 2pt; text-align: center; font-size: 8pt; line-height: 13pt; margin-right: 5pt; vertical-align: 1pt; }
   h4 { font-size: 8.4pt; margin: 4pt 0 2pt; color: #1d1d1b; }
   .cols { display: flex; gap: 10pt; }
   .cols > div { flex: 1; min-width: 0; }
@@ -34,7 +35,7 @@
   .chart { width: 100%; }
   .chart-t { font-size: 7.6pt; font-weight: 700; margin: 4pt 0 0; }
   .comment { background: #f7f6f3; padding: 5pt 7pt; margin-top: 5pt; border-radius: 2pt; }
-  .comment b { color: #1b2a44; }
+  .comment b { color: #2d2d2d; }
   .manual { border: 1pt dashed #b4472a; border-radius: 3pt; padding: 5pt 7pt; margin-top: 5pt; background: #fdf8f6; }
   .manual .mh { color: #b4472a; font-weight: 700; font-size: 7.6pt; }
   table.mt { width: 100%; border-collapse: collapse; font-size: 7.6pt; margin-top: 2pt; }
@@ -57,13 +58,13 @@
   table.art { width: 100%; border-collapse: collapse; }
   table.art td { padding: 3pt 4pt; border-bottom: 0.4pt solid #e4e3df; vertical-align: top; }
   table.art td.kf { width: 74pt; border-right: 0.4pt solid #e4e3df; }
-  table.art td.kf b { display: block; font-size: 10.5pt; color: #1b2a44; }
+  table.art td.kf b { display: block; font-size: 10.5pt; color: #2d2d2d; }
   table.art td.kf span { font-size: 6.4pt; color: #8a8984; line-height: 1.25; display: block; }
-  a { color: #1b2a44; font-weight: 700; text-decoration: none; border-bottom: 0.5pt solid #9bb0d0; }
+  a { color: #2d2d2d; font-weight: 700; text-decoration: none; border-bottom: 0.5pt solid #f9b98c; }
   .tiles { display: flex; flex-wrap: wrap; gap: 6pt; }
   .tile { width: calc(33.33% - 4pt); border: 0.6pt solid #d9d8d2; border-radius: 3pt; padding: 5pt 6pt; break-inside: avoid; }
   .tile .cat { font-size: 6.5pt; font-weight: 700; color: #52514e; letter-spacing: 0.3pt; }
-  .tile .big { font-size: 14pt; font-weight: 700; color: #1b2a44; line-height: 1.15; margin-top: 1pt; }
+  .tile .big { font-size: 14pt; font-weight: 700; color: #2d2d2d; line-height: 1.15; margin-top: 1pt; }
   .tile .lab { font-size: 6.3pt; color: #8a8984; line-height: 1.25; }
   .tile .tt { font-size: 7.8pt; margin-top: 3pt; line-height: 1.35; }
   .tile .sm { font-size: 7pt; color: #52514e; line-height: 1.4; margin-top: 2pt; }
@@ -71,28 +72,28 @@
   table.wk th { font-weight: 700; text-align: left; border-bottom: 0.8pt solid #1d1d1b; padding: 2pt 3pt; }
   table.wk td { border-bottom: 0.4pt solid #e4e3df; padding: 2pt 3pt; vertical-align: top; }
   table.wk .rh { width: 52pt; color: #52514e; font-weight: 700; }
-  table.wk .today { background: #f1f3f7; }
+  table.wk .today { background: #fef0e7; }
   table.wk .it { display: flex; justify-content: space-between; gap: 3pt; }
   table.wk .p { color: #0f7a55; } table.wk .m { color: #b4472a; }
-  table.wk .ev { background: #1b2a44; color: #fff; padding: 0 3pt; border-radius: 2pt; font-weight: 700; }
+  table.wk .ev { background: #2d2d2d; color: #fff; padding: 0 3pt; border-radius: 2pt; font-weight: 700; }
   table.wk tr.tot td { font-weight: 700; } table.wk td.n { text-align: right; }
   table.mon { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 6.6pt; }
   table.mon th { font-weight: 500; color: #52514e; border: 0.4pt solid #d9d8d2; padding: 1.5pt; }
   table.mon td { border: 0.4pt solid #d9d8d2; height: 44pt; vertical-align: top; padding: 2pt; }
   table.mon td.out { background: #f6f6f3; color: #b7b6b0; }
-  table.mon td.today { outline: 1.2pt solid #2a78d6; outline-offset: -1.2pt; }
+  table.mon td.today { outline: 1.2pt solid #f47321; outline-offset: -1.2pt; }
   table.mon .dn { font-weight: 700; font-size: 7pt; }
-  table.mon .e { background: #eef1f5; border-radius: 2pt; padding: 0.5pt 2pt; margin-top: 1.5pt; line-height: 1.25; }
-  table.mon .e.key { background: #1b2a44; color: #fff; }
+  table.mon .e { background: #f3f4f6; border-radius: 2pt; padding: 0.5pt 2pt; margin-top: 1.5pt; line-height: 1.25; }
+  table.mon .e.key { background: #2d2d2d; color: #fff; }
   table.deals td, table.deals th { font-size: 6.6pt; white-space: nowrap; }
   table.mon .e.corp { background: #e3f4ec; color: #14573d; }
 </style></head><body>
 <div class="mast">
   <div>
-    <h1>Daily Market Brief</h1>
+    <h1>Fund Sales Daily Brief</h1>
     <div class="sub">{{ B.meta.team }} · 매크로 · 수익증권 · 채권 · 단기자금</div>
   </div>
-  <div class="meta"><b>{{ B.meta.label }}</b><br>{{ B.meta.asof }}</div>
+  <div class="meta">{% if CI %}<img class="ci" src="{{ CI }}" alt="CI"><br>{% endif %}<b>{{ B.meta.label }}</b><br>{{ B.meta.asof }}</div>
 </div>
 
 <div class="summary">

@@ -321,12 +321,22 @@ json.dump(data, open(os.path.join(OUT, "brief_data.json"), "w", encoding="utf-8"
 # ---------- 웹 ----------
 payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
 web = open(os.path.join(TPL, "web_template.html"), encoding="utf-8").read().replace("/*__ASK_JS__*/", open(os.path.join(TPL, "ask.js"), encoding="utf-8").read()).replace("/*__BRIEF_DATA__*/null", payload)
-open(os.path.join(OUT, "web.html"), "w", encoding="utf-8").write(web)
+# 회사 CI(사용자 제공 PPT 템플릿에서 추출) — 팀 페이지와 앱 모두 표시(사용자 결정 2026-10-21)
+import base64 as _b64
+def _ci(name):
+    p_ = os.path.join(ROOT, "assets", name)
+    return "data:image/png;base64," + _b64.b64encode(open(p_, "rb").read()).decode() if os.path.exists(p_) else None
+_ci_top, _ci_foot = _ci("ci_ondark.png"), _ci("ci_color.png")
+web_team = web.replace("<!--__CI_TOP__-->", f'<img class="ci-top" src="{_ci_top}" alt="CI">' if _ci_top else "").replace(
+    "<!--__CI_FOOT__-->", f'<img class="ci-foot" src="{_ci_foot}" alt="CI">' if _ci_foot else "")
+open(os.path.join(OUT, "web.html"), "w", encoding="utf-8").write(web_team)
 # 공개 앱(GitHub Pages)용: 펀드 관리·MMF 주문은 가상(sample) 데이터일 때만 넣는다. 실제 메일 데이터면 자동으로 뺀다(고객정보 공개 방지)
 _safe = lambda x: x if (x and x.get("sample") is True) else None
 _pub = dict(data, notices=_safe(notices_data), mmf_orders=_safe(mmf_data))
 _pub_payload = json.dumps(_pub, ensure_ascii=False).replace("</", "<\\/")
-open(os.path.join(OUT, "web_public.html"), "w", encoding="utf-8").write(web.replace(payload, _pub_payload))
+open(os.path.join(OUT, "web_public.html"), "w", encoding="utf-8").write(web.replace(payload, _pub_payload).replace(
+    "<!--__CI_TOP__-->", f'<img class="ci-top" src="{_ci_top}" alt="CI">' if _ci_top else "").replace(
+    "<!--__CI_FOOT__-->", f'<img class="ci-foot" src="{_ci_foot}" alt="CI">' if _ci_foot else ""))  # 앱에도 CI 표시(사용자 결정 2026-10-21)
 
 # ---------- PDF (고객 전달용) ----------
 import matplotlib
@@ -337,7 +347,7 @@ for fp in ["/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"]:
     if os.path.exists(fp): font_manager.fontManager.addfont(fp)
 plt.rcParams.update({"font.family": "Noto Sans CJK JP", "svg.fonttype": "path", "axes.unicode_minus": False})
 INK, INK2, MUTED, GRID = "#1d1d1b", "#52514e", "#8a8984", "#e4e3df"
-COL = ["#2a78d6", "#eb6834", "#1baf7a"]
+COL = ["#f47321", "#5b6b7a", "#1a9e6e"]  # 테마(주황·회청·초록) — 웹과 같은 색
 
 def line_svg(name, spec, ylabel, dec, ticks=None, h=1.75, w=3.55, marks=None, tick_labels=None):
     fig, ax = plt.subplots(figsize=(w, h), dpi=200)
@@ -402,7 +412,7 @@ pdf_srcs = [x for x in data["sources"] if "대조 전" not in x and (include_kmb
 pdf_cal = [c for c in data["calendar"] if not c.get("check") and (include_kmb or not c.get("kmb"))]
 month_grid = month_grid_for(pdf_cal)
 pdf_summary = [x["text"] if isinstance(x, dict) else x for x in data["summary"] if include_kmb or not (isinstance(x, dict) and x.get("kmb"))]
-pdf_html = env.get_template("pdf_template.html").render(B=data, C=charts, sgn=sgn, include_kmb=include_kmb, summary=pdf_summary, month=month_grid,
+pdf_html = env.get_template("pdf_template.html").render(CI=_ci_foot, B=data, C=charts, sgn=sgn, include_kmb=include_kmb, summary=pdf_summary, month=month_grid,
                                                          cal=pdf_cal,
                                                          srcs=pdf_srcs)
 open(os.path.join(OUT, "_pdf.html"), "w", encoding="utf-8").write(pdf_html)
