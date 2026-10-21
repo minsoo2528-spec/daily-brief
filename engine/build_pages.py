@@ -8,7 +8,9 @@ claude.ai 밖이라 'Claude 답변'은 자동으로 숨고 '빠른 계산'만 �
 import os, shutil, sys
 ROOT = sys.argv[1]; DST = sys.argv[2]
 os.makedirs(DST, exist_ok=True)
-body = open(os.path.join(ROOT, "out", "web.html"), encoding="utf-8").read()
+# 공개 저장소이므로 공문 일정 등 팀 전용 데이터를 뺀 web_public.html을 쓴다(없으면 중단)
+body = open(os.path.join(ROOT, "out", "web_public.html"), encoding="utf-8").read()
+assert '"notices": null' in body and '"mmf_orders": null' in body, "공개판에 공문·MMF 주문 데이터가 들어 있음"
 HEAD = """<!doctype html>
 <html lang="ko"><head>
 <meta charset="utf-8">
