@@ -35,7 +35,7 @@ rows = []
 for s in fired:
     t, c, bg = LV[s["level"]]
     items = "".join(f'<li style="margin:2px 0">{E(i)}</li>' for i in s.get("items", []))
-    links = "".join(f' <a href="{E(u)}" style="color:#2a78d6">원문</a>' for u in s.get("links", []))
+    links = "".join(f' <a href="{E(u)}" style="color:#d35f12">원문</a>' for u in s.get("links", []))
     rows.append(
         f'<tr><td style="padding:12px 14px;border-bottom:1px solid #e0e4ea;vertical-align:top">'
         f'<span style="display:inline-block;font-size:12px;font-weight:700;color:{c};background:{bg};border-radius:4px;padding:1px 7px">{t}</span>'
@@ -43,12 +43,12 @@ for s in fired:
         f'<div style="font-size:15px;font-weight:700;color:#142031;margin:6px 0 2px">{E(s["name"])}</div>'
         f'<div style="font-size:14px;color:#142031">{E(s["value"])}</div>'
         + (f'<ul style="margin:6px 0 0;padding-left:18px;font-size:13px;color:#4c5666">{items}</ul>' if items else "")
-        + f'<div style="font-size:13px;background:#eef1f5;border-radius:6px;padding:7px 10px;margin-top:8px"><b>영업 포인트</b> {E(s["action"])}{links}</div>'
+        + f'<div style="font-size:13px;background:#f3f4f6;border-radius:6px;padding:7px 10px;margin-top:8px"><b>영업 포인트</b> {E(s["action"])}{links}</div>'
         f'<div style="font-size:11px;color:#858d99;margin-top:5px">기준: {E(s["rule"])} · 출처: {E(s["src"])}</div></td></tr>'
     )
 
 MN = D.get("market_now")
-def _c(v): return "#c0392b" if v > 0 else "#2a78d6" if v < 0 else "#4c5666"
+def _c(v): return "#d9363e" if v > 0 else "#2f6fd6" if v < 0 else "#555555"
 def _s(v, nd): return ("+" if v > 0 else "−" if v < 0 else "") + f"{abs(v):,.{nd}f}"
 mkt_html, mkt_text = "", ""
 if MN and (MN.get("kr") or MN.get("us")):
@@ -65,7 +65,7 @@ if MN and (MN.get("kr") or MN.get("us")):
     tds = "".join(f'<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:-1px"><tr>{"".join(_td(*x) for x in r)}</tr></table>' for r in rows_ if r)
     kp = next((o for o in MN.get("kr", []) if o["name"] == "코스피" and o.get("inv")), None)
     inv = (f'<div style="font-size:12px;color:#4c5666;margin-top:6px">코스피 수급(억원, 장중 잠정): 외국인 {_s(kp["inv"]["frgn"], 0)} · 기관 {_s(kp["inv"]["inst"], 0)} · 개인 {_s(kp["inv"]["indiv"], 0)}</div>' if kp else "")
-    cm = (f'<div style="font-size:13px;background:#eef1f5;border-radius:6px;padding:8px 10px;margin-top:8px"><b>시황 코멘트</b> {E(MN["comment"])}</div>' if MN.get("comment") else "")
+    cm = (f'<div style="font-size:13px;background:#f3f4f6;border-radius:6px;padding:8px 10px;margin-top:8px"><b>시황 코멘트</b> {E(MN["comment"])}</div>' if MN.get("comment") else "")
     mkt_html = (f'<div style="font-size:16px;font-weight:700;margin-bottom:8px">현재 시황 <span style="font-size:12px;font-weight:400;color:#858d99">{E(MN["asof"])} 기준 · 장중 스냅샷</span></div>'
                 f'{tds}{inv}{cm}'
                 f'<div style="font-size:11px;color:#858d99;margin:4px 0 18px">출처: {E(MN.get("src", ""))} · 실시간 아님</div>')
@@ -88,13 +88,13 @@ APP_NOTE = "자세한 사항은 어플리케이션에서 확인 바랍니다."
 def _b(href, label, bg):
     return (f'<a href="{E(href)}" style="display:inline-block;background:{bg};color:#fff;text-decoration:none;padding:10px 16px;'
             f'border-radius:8px;font-weight:600;font-size:14px;margin:0 6px 6px 0">{label}</a>')
-note_top = (f'<div style="font-size:13px;color:#142031;background:#fff4e5;border-radius:6px;padding:8px 10px;margin-bottom:14px">'
-            f'{APP_NOTE}' + (f' <a href="{E(app)}" style="color:#c76a00;font-weight:600">앱 열기 →</a>' if app else "") + '</div>')
+note_top = (f'<div style="font-size:13px;color:#142031;background:#fef0e7;border-radius:6px;padding:8px 10px;margin-bottom:14px">'
+            f'{APP_NOTE}' + (f' <a href="{E(app)}" style="color:#d35f12;font-weight:600">앱 열기 →</a>' if app else "") + '</div>')
 btn = ('<div style="margin:18px 0 4px">' + (f'<div style="font-size:13px;margin-bottom:8px">{APP_NOTE}</div>')
-       + (_b(app, "앱에서 보기", "#1b2a44") if app else "") + (_b(url, "웹페이지(Claude 챗봇 포함)", "#4c5666") if url else "") + "</div>")
+       + (_b(app, "앱에서 보기", "#f47321") if app else "") + (_b(url, "웹페이지(Claude 챗봇 포함)", "#555555") if url else "") + "</div>")
 
 body = (f'<div style="font-family:\'Malgun Gothic\',\'Apple SD Gothic Neo\',sans-serif;max-width:680px;color:#142031">'
-        f'<div style="background:#1b2a44;color:#fff;padding:16px 18px;border-radius:10px 10px 0 0">'
+        f'<div style="background:#2d2d2d;color:#fff;padding:16px 18px;border-radius:10px 10px 0 0;border-bottom:3px solid #f47321">'
         f'<div style="font-size:18px;font-weight:700">Fund Sales Daily Brief</div>'
         f'<div style="font-size:13px;opacity:.8">{E(meta["label"])} · {E(meta["asof"])} · 팀 내부용</div></div>'
         f'<div style="border:1px solid #e0e4ea;border-top:0;border-radius:0 0 10px 10px;padding:16px 18px">'

@@ -19,7 +19,7 @@ HEAD = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
-<meta name="theme-color" content="#1b2a44">
+<meta name="theme-color" content="#2d2d2d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -27,7 +27,7 @@ HEAD = """<!doctype html>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<style>body{margin:0}.instbar{position:fixed;left:12px;bottom:12px;z-index:39;display:flex;gap:8px;align-items:center;background:#fff;color:#142031;border:1px solid #e0e4ea;border-radius:12px;padding:8px 10px;box-shadow:0 4px 16px rgba(0,0,0,.15);font:500 13px system-ui,sans-serif;max-width:calc(100vw - 150px)}.instbar[hidden]{display:none}.instbar button{border:0;border-radius:8px;padding:6px 10px;font:600 13px system-ui,sans-serif;cursor:pointer}.instbar .go{background:#1b2a44;color:#fff}.instbar .x{background:transparent;color:#858d99}@media print{.instbar{display:none}}</style>
+<style>body{margin:0}.instbar{position:fixed;left:12px;bottom:12px;z-index:39;display:flex;gap:8px;align-items:center;background:#fff;color:#142031;border:1px solid #e0e4ea;border-radius:12px;padding:8px 10px;box-shadow:0 4px 16px rgba(0,0,0,.15);font:500 13px system-ui,sans-serif;max-width:calc(100vw - 150px)}.instbar[hidden]{display:none}.instbar button{border:0;border-radius:8px;padding:6px 10px;font:600 13px system-ui,sans-serif;cursor:pointer}.instbar .go{background:#f47321;color:#fff}.instbar .x{background:transparent;color:#858d99}@media print{.instbar{display:none}}</style>
 </head><body>
 """
 TAIL = """
