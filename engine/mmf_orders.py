@@ -80,7 +80,7 @@ def build(raw_dir, today_iso, holidays=()):
     wk = [o for o in ok if today_iso <= o["date"] <= wk_end]
     orders.sort(key=lambda x: (x["date"], x["side"] != "매수", -x["won"]))
     return {
-        "beta": True, "sample": "가상" in IB.get("mailbox", ""), "asof": today_iso, "orders": orders, "grid": grid, "issues": issues,
+        "beta": True, "sample": IB.get("sample") is True, "asof": today_iso, "orders": orders, "grid": grid, "issues": issues,
         "kpi": {"today_n": len(tdy), "today_buy": sum(o["won"] for o in tdy if o["side"] == "매수"),
                 "today_red": sum(o["won"] for o in tdy if o["side"] == "환매"),
                 "week_n": len(wk), "week_buy": sum(o["won"] for o in wk if o["side"] == "매수"),

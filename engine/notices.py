@@ -83,7 +83,7 @@ def build(raw_dir, today_iso):
     up = [e for e in events if e["dday"] >= 0]
     wk_end = today + dt.timedelta(days=6 - today.weekday() + 7)  # 다음 주 일요일까지
     return {
-        "beta": True, "sample": "가상" in IB.get("mailbox", "") or "_note" in IB, "mailbox": IB.get("mailbox", ""),
+        "beta": True, "sample": IB.get("sample") is True, "mailbox": IB.get("mailbox", ""),
         "asof": today_iso, "notices": notices, "events": events, "issues": issues,
         "kpi": {
             "new_today": sum(1 for n in notices if n["received"][:10] == today_iso),

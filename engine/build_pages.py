@@ -10,7 +10,10 @@ ROOT = sys.argv[1]; DST = sys.argv[2]
 os.makedirs(DST, exist_ok=True)
 # 공개 저장소이므로 공문 일정 등 팀 전용 데이터를 뺀 web_public.html을 쓴다(없으면 중단)
 body = open(os.path.join(ROOT, "out", "web_public.html"), encoding="utf-8").read()
-assert '"notices": null' in body and '"mmf_orders": null' in body, "공개판에 공문·MMF 주문 데이터가 들어 있음"
+import json as _j, re as _re
+_d = _j.loads(_re.search(r'<script type="application/json" id="brief-data">(.*?)</script>', body, _re.S).group(1).replace("<\\/", "</"))
+for _k in ("notices", "mmf_orders"):
+    assert _d.get(_k) is None or _d[_k].get("sample") is True, f"공개 앱에 실제(비가상) {_k} 데이터가 들어 있음 — 중단"
 HEAD = """<!doctype html>
 <html lang="ko"><head>
 <meta charset="utf-8">

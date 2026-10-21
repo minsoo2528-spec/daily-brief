@@ -322,8 +322,9 @@ json.dump(data, open(os.path.join(OUT, "brief_data.json"), "w", encoding="utf-8"
 payload = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")
 web = open(os.path.join(TPL, "web_template.html"), encoding="utf-8").read().replace("/*__ASK_JS__*/", open(os.path.join(TPL, "ask.js"), encoding="utf-8").read()).replace("/*__BRIEF_DATA__*/null", payload)
 open(os.path.join(OUT, "web.html"), "w", encoding="utf-8").write(web)
-# 공개 앱(GitHub Pages)용: 공문 일정(고객정보 포함 가능)을 뺀 판
-_pub = dict(data, notices=None, mmf_orders=None)
+# 공개 앱(GitHub Pages)용: 펀드 관리·MMF 주문은 가상(sample) 데이터일 때만 넣는다. 실제 메일 데이터면 자동으로 뺀다(고객정보 공개 방지)
+_safe = lambda x: x if (x and x.get("sample") is True) else None
+_pub = dict(data, notices=_safe(notices_data), mmf_orders=_safe(mmf_data))
 _pub_payload = json.dumps(_pub, ensure_ascii=False).replace("</", "<\\/")
 open(os.path.join(OUT, "web_public.html"), "w", encoding="utf-8").write(web.replace(payload, _pub_payload))
 
