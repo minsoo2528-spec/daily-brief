@@ -95,7 +95,7 @@ btn = ('<div style="margin:18px 0 4px">' + (f'<div style="font-size:13px;margin-
 
 body = (f'<div style="font-family:\'Malgun Gothic\',\'Apple SD Gothic Neo\',sans-serif;max-width:680px;color:#142031">'
         f'<div style="background:#1b2a44;color:#fff;padding:16px 18px;border-radius:10px 10px 0 0">'
-        f'<div style="font-size:18px;font-weight:700">Wholesale Daily Brief</div>'
+        f'<div style="font-size:18px;font-weight:700">Fund Sales Daily Brief</div>'
         f'<div style="font-size:13px;opacity:.8">{E(meta["label"])} · {E(meta["asof"])} · 팀 내부용</div></div>'
         f'<div style="border:1px solid #e0e4ea;border-top:0;border-radius:0 0 10px 10px;padding:16px 18px">'
         f'{note_top}{mkt_html}{sig_html}'
@@ -105,7 +105,7 @@ body = (f'<div style="font-family:\'Malgun Gothic\',\'Apple SD Gothic Neo\',sans
         f'<div style="font-size:11px;color:#858d99;margin-top:14px">참고자료이며 특정 상품의 투자권유를 목적으로 하지 않습니다. 수치는 각 출처의 기준일 값입니다.</div>'
         f'</div></div>')
 
-text = (f"Wholesale Daily Brief {meta['label']}\n{APP_NOTE}" + (f" {app}" if app else "") + "\n\n" + mkt_text
+text = (f"Fund Sales Daily Brief {meta['label']}\n{APP_NOTE}" + (f" {app}" if app else "") + "\n\n" + mkt_text
         + (f"오늘의 시그널: 행동 {nr} · 주목 {no}\n" + "\n".join(
             f"- [{LV[s['level']][0]}] {s['name']}: {s['value']} / 영업 포인트: {s['action']}" for s in fired)
            if fired else "오늘 발생한 시그널 없음")
