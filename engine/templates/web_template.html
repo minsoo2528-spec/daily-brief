@@ -194,6 +194,16 @@ table.inv th { text-align: right; } table.inv th:first-child { text-align: left;
 .cal .row.corp .d { color: var(--s3); }
 @media (max-width: 760px) { .kpis.three { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
+/* 현재 시황 */
+.mkt .kpis { margin-bottom: 4px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { .mkt .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.mkt .up { color: var(--sig-red); } .mkt .dn { color: var(--s1); }
+.usrow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.usrow div { background: var(--soft); border-radius: 8px; padding: 8px 10px; display: grid; gap: 1px; min-width: 0; }
+.usrow span { font-size: 0.74rem; color: var(--ink-2); }
+.usrow b { font: 500 0.98rem var(--mono); font-variant-numeric: tabular-nums; }
+.usrow em { font: 400 0.78rem var(--mono); font-style: normal; font-variant-numeric: tabular-nums; }
+@media (max-width: 760px) { .usrow { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 /* 시그널 */
 .tbadge { display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px; border-radius: 9px; font: 600 0.7rem/18px var(--mono); text-align: center; background: var(--sig-org); color: #fff; vertical-align: 1px; }
 .tbadge.red { background: var(--sig-red); }
@@ -369,6 +379,22 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
   }
   function niceStep(x) { var p = Math.pow(10, Math.floor(Math.log10(x))), f = x / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
 
+  // 현재 시황(장중 스냅샷) — 실행 시점에 한 번 받아 둔 값. 실시간 아님.
+  function marketNow() {
+    var M = B.market_now; if (!M || (!M.kr.length && !M.us.length)) return "";
+    var ud = function (v) { return v > 0 ? "up" : v < 0 ? "dn" : ""; };
+    var mk = function (k, v, d, cls) { return '<div class="kpi"><span class="k">' + esc(k) + '</span><span class="v">' + esc(v) + '</span><span class="d ' + (cls || "") + '">' + esc(d) + "</span></div>"; };
+    var ks = M.kr.map(function (o) { return mk(o.name + " (" + o.time + ")", nf(o.price, 2), sgn(o.chg, 2) + " (" + sgn(o.pct, 2, "%") + ")", ud(o.chg)); });
+    if (M.fx) ks.push(mk("원/달러 (" + M.fx.time + ")", nf(M.fx.price, 1), "전일 대비 " + sgn(M.fx.chg, 1), ud(M.fx.chg)));
+    var kp = M.kr.filter(function (o) { return o.name === "코스피"; })[0];
+    if (kp && kp.inv && kp.inv.frgn != null) ks.push(mk("코스피 수급 (억원)", "외국인 " + sgn(kp.inv.frgn), "기관 " + sgn(kp.inv.inst) + " · 개인 " + sgn(kp.inv.indiv), ""));
+    var us = M.us.length ? '<div class="sub">미국 증시 · 현지 ' + esc(M.us[0].date) + ' 마감</div><div class="usrow">' + M.us.map(function (o) {
+      return "<div><span>" + esc(o.name) + "</span><b>" + nf(o.price, 2) + '</b><em class="' + ud(o.chg) + '">' + sgn(o.pct, 2, "%") + "</em></div>"; }).join("") + "</div>" : "";
+    var cm = M.comment ? '<div style="margin-top:12px">' + comment(M.comment, M.comment_src) + "</div>" : "";
+    return '<div class="card mkt"><h3><span>현재 시황</span><span class="asof">' + esc(M.asof) + " 기준 · 장중 스냅샷</span></h3>" +
+      (ks.length ? '<div class="kpis">' + ks.join("") + "</div>" : '<p class="empty">국내 증시 개장 전 값이라 넣지 않았습니다.</p>') + us + cm +
+      '<div class="note">장중 값은 ' + esc(M.asof) + " 시점에 받은 값이며 실시간으로 바뀌지 않습니다 · 국내 수급은 장중 잠정 · 출처: " + esc(M.src) + "</div></div>";
+  }
   // ---- 탭 렌더러 ----
   var R = {};
   R.summary = function () {
@@ -387,7 +413,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
       banner = '<button type="button" class="sigban" data-go="signals"><span class="sb-h"><b>오늘의 시그널</b><span class="pill red">행동 ' + sg.count.red + '</span><span class="pill org">주목 ' + sg.count.orange + '</span><span class="sb-go">시그널 보기 →</span></span>' +
         top.map(function (x) { return '<span class="sb-i"><i class="dot ' + (x.level === "red" ? "red" : "org") + '"></i><em>' + esc(x.sec) + "</em> " + esc(x.name) + " — " + esc(x.value) + "</span>"; }).join("") + "</button>";
     }
-    return '<section class="panel"><h2>오늘의 요약</h2>' + banner + k +
+    return '<section class="panel">' + marketNow() + '<h2>오늘의 요약</h2>' + banner + k +
       card("핵심 포인트", B.meta.asof, '<ul class="lines">' + B.summary.map(function (t) { return "<li>" + esc(typeof t === "string" ? t : t.text) + "</li>"; }).join("") + "</ul>") +
       card("놓치면 안 되는 일정", "", '<div class="cal">' + keyEv + "</div>") + "</section>";
   };
@@ -674,7 +700,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
       if (money.supply) { delete money.supply.trend; delete money.supply.buyers; }
       var sig = ((B.signals || {}).list || []).map(function (s) { return { id: s.id, sec: s.sec, name: s.name, level: s.level, status: s.status, value: s.value, rule: s.rule, action: s.action, items: s.items }; });
       var qa = (A.qa || []).map(function (x) { return { q: x.q, a: x.a, src: x.src }; });
-      return JSON.stringify({ meta: B.meta, summary: B.summary, signals: sig, macro: B.macro, realestate: B.realestate, bond: bond, money: money,
+      return JSON.stringify({ meta: B.meta, market_now: B.market_now, summary: B.summary, signals: sig, macro: B.macro, realestate: B.realestate, bond: bond, money: money,
         calendar: B.calendar, reserve_week: B.reserve_week, liquidity_top: A.liq, liquidity_asof: A.liq_asof, prepared_qa: qa, sources: B.sources });
     }
     var RULES = "너는 증권사 Wholesale 금융상품영업팀의 'Daily Brief' 웹페이지 안에 있는 질문 도우미다. 아래 DATA(오늘 브리프의 원자료, JSON)와 quick_calc 도구 결과만 근거로 한국어로 답한다.\n" +

@@ -19,6 +19,7 @@ E = html.escape
 
 to = CFG.get("team_to") or []
 url = CFG.get("web_url", "")
+app = CFG.get("app_url", "")
 meta = D["meta"]
 m = re.match(r"\d{4}\.\s*(\d+)\.\s*(\d+)\s*\((.)\)", meta["label"])
 short = f"{int(m.group(1))}/{int(m.group(2))}({m.group(3)})" if m else meta["date"]
@@ -46,6 +47,31 @@ for s in fired:
         f'<div style="font-size:11px;color:#858d99;margin-top:5px">기준: {E(s["rule"])} · 출처: {E(s["src"])}</div></td></tr>'
     )
 
+MN = D.get("market_now")
+def _c(v): return "#c0392b" if v > 0 else "#2a78d6" if v < 0 else "#4c5666"
+def _s(v, nd): return ("+" if v > 0 else "−" if v < 0 else "") + f"{abs(v):,.{nd}f}"
+mkt_html, mkt_text = "", ""
+if MN and (MN.get("kr") or MN.get("us")):
+    cells = [(o["name"] + f" ({o['time']})", f"{o['price']:,.2f}", f"{_s(o['chg'], 2)} ({_s(o['pct'], 2)}%)", o["chg"]) for o in MN.get("kr", [])]
+    if MN.get("fx"):
+        cells.append((f"원/달러 ({MN['fx']['time']})", f"{MN['fx']['price']:,.1f}", f"전일 대비 {_s(MN['fx']['chg'], 1)}", MN["fx"]["chg"]))
+    cells += [(f"{o['name']} ({o['date']} 마감)", f"{o['price']:,.2f}", f"{_s(o['pct'], 2)}%", o["chg"]) for o in MN.get("us", [])]
+    n_kr = len(cells) - len(MN.get("us", []))
+    def _td(a, b, c, v):
+        return (f'<td style="padding:8px 10px;border:1px solid #e0e4ea;vertical-align:top">'
+                f'<div style="font-size:11px;color:#858d99">{E(a)}</div><div style="font-size:16px;font-weight:700;color:#142031">{E(b)}</div>'
+                f'<div style="font-size:12px;color:{_c(v)}">{E(c)}</div></td>')
+    rows_ = [cells[:n_kr], cells[n_kr:]]
+    tds = "".join(f'<table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:-1px"><tr>{"".join(_td(*x) for x in r)}</tr></table>' for r in rows_ if r)
+    kp = next((o for o in MN.get("kr", []) if o["name"] == "코스피" and o.get("inv")), None)
+    inv = (f'<div style="font-size:12px;color:#4c5666;margin-top:6px">코스피 수급(억원, 장중 잠정): 외국인 {_s(kp["inv"]["frgn"], 0)} · 기관 {_s(kp["inv"]["inst"], 0)} · 개인 {_s(kp["inv"]["indiv"], 0)}</div>' if kp else "")
+    cm = (f'<div style="font-size:13px;background:#eef1f5;border-radius:6px;padding:8px 10px;margin-top:8px"><b>시황 코멘트</b> {E(MN["comment"])}</div>' if MN.get("comment") else "")
+    mkt_html = (f'<div style="font-size:16px;font-weight:700;margin-bottom:8px">현재 시황 <span style="font-size:12px;font-weight:400;color:#858d99">{E(MN["asof"])} 기준 · 장중 스냅샷</span></div>'
+                f'{tds}{inv}{cm}'
+                f'<div style="font-size:11px;color:#858d99;margin:4px 0 18px">출처: {E(MN.get("src", ""))} · 실시간 아님</div>')
+    mkt_text = (f"현재 시황 ({MN['asof']} 기준)\n" + "\n".join(f"- {a} {b} {c}" for a, b, c, _ in cells)
+                + (f"\n시황 코멘트: {MN['comment']}" if MN.get("comment") else "") + "\n\n")
+
 summ = [x["text"] if isinstance(x, dict) else x for x in D.get("summary", [])]
 pts = "".join(f'<li style="margin:4px 0">{E(x)}</li>' for x in summ)
 
@@ -58,27 +84,33 @@ else:
     sig_html = '<div style="font-size:15px;font-weight:700;margin-bottom:8px">오늘 발생한 시그널 없음</div>'
     subject = f"[Daily Brief] {short} 시그널 없음"
 
-btn = (f'<div style="margin:18px 0 4px"><a href="{E(url)}" style="display:inline-block;background:#1b2a44;color:#fff;'
-       f'text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:600;font-size:14px">웹페이지 전체 보기</a></div>') if url else ""
+APP_NOTE = "자세한 사항은 어플리케이션에서 확인 바랍니다."
+def _b(href, label, bg):
+    return (f'<a href="{E(href)}" style="display:inline-block;background:{bg};color:#fff;text-decoration:none;padding:10px 16px;'
+            f'border-radius:8px;font-weight:600;font-size:14px;margin:0 6px 6px 0">{label}</a>')
+note_top = (f'<div style="font-size:13px;color:#142031;background:#fff4e5;border-radius:6px;padding:8px 10px;margin-bottom:14px">'
+            f'{APP_NOTE}' + (f' <a href="{E(app)}" style="color:#c76a00;font-weight:600">앱 열기 →</a>' if app else "") + '</div>')
+btn = ('<div style="margin:18px 0 4px">' + (f'<div style="font-size:13px;margin-bottom:8px">{APP_NOTE}</div>')
+       + (_b(app, "앱에서 보기", "#1b2a44") if app else "") + (_b(url, "웹페이지(Claude 챗봇 포함)", "#4c5666") if url else "") + "</div>")
 
 body = (f'<div style="font-family:\'Malgun Gothic\',\'Apple SD Gothic Neo\',sans-serif;max-width:680px;color:#142031">'
         f'<div style="background:#1b2a44;color:#fff;padding:16px 18px;border-radius:10px 10px 0 0">'
         f'<div style="font-size:18px;font-weight:700">Wholesale Daily Brief</div>'
         f'<div style="font-size:13px;opacity:.8">{E(meta["label"])} · {E(meta["asof"])} · 팀 내부용</div></div>'
         f'<div style="border:1px solid #e0e4ea;border-top:0;border-radius:0 0 10px 10px;padding:16px 18px">'
-        f'{sig_html}'
+        f'{note_top}{mkt_html}{sig_html}'
         f'<div style="font-size:16px;font-weight:700;margin:18px 0 6px">핵심 포인트</div>'
         f'<ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.6">{pts}</ul>'
         f'{btn}'
         f'<div style="font-size:11px;color:#858d99;margin-top:14px">참고자료이며 특정 상품의 투자권유를 목적으로 하지 않습니다. 수치는 각 출처의 기준일 값입니다.</div>'
         f'</div></div>')
 
-text = (f"Wholesale Daily Brief {meta['label']}\n\n"
+text = (f"Wholesale Daily Brief {meta['label']}\n{APP_NOTE}" + (f" {app}" if app else "") + "\n\n" + mkt_text
         + (f"오늘의 시그널: 행동 {nr} · 주목 {no}\n" + "\n".join(
             f"- [{LV[s['level']][0]}] {s['name']}: {s['value']} / 영업 포인트: {s['action']}" for s in fired)
            if fired else "오늘 발생한 시그널 없음")
         + "\n\n핵심 포인트\n" + "\n".join("- " + x for x in summ)
-        + (f"\n\n웹페이지: {url}" if url else "")
+        + (f"\n\n{APP_NOTE}" + (f"\n앱: {app}" if app else "") + (f"\n웹페이지(Claude 챗봇 포함): {url}" if url else ""))
         + "\n\n참고자료이며 특정 상품의 투자권유를 목적으로 하지 않습니다.")
 
 out = {"to": to, "subject": subject, "html": body, "text": text, "fired": len(fired)}

@@ -15,7 +15,8 @@
   "team_to": [
    "받는 사람 주소 (실제 주소는 PC의 config.json에만 보관)"
   ],
-  "web_url": "https://claude.ai/artifact/A9xGuRin8tpMD7bPNiiG1i"
+  "web_url": "https://claude.ai/artifact/A9xGuRin8tpMD7bPNiiG1i",
+  "app_url": "https://minsoo2528-spec.github.io/daily-brief/"
  },
  "_note_example": "예시 파일 — 실제 config.json(메일 주소 포함)은 저장소에 올리지 않는다"
 }

@@ -259,12 +259,14 @@ def evaluate(ctx):
     add("S3", "단기자금", "펀드(집합투자) Repo 매수 급감", "orange", df <= C["fund_repo_drop_jo"],
         f"집합투자 매수 {R0[i_f] / 1e12:,.1f}조 · 전일 {df:+.2f}조", f"하루 {C['fund_repo_drop_jo']:.0f}조 이하 (1년 하위 5%)", "Repo 자금 공급 주체 변화 — 은행·증권 RP 수요 점검", "예탁원 SEIBro", mag=df)
     base = CT.get("base_rate")
-    call = r("콜금리(1일, 전체거래)", "d0")
+    call, call_lb = r("콜금리(1일, 전체거래)", "d0"), ""
+    if call is None:  # ECOS 당일분 미공표면 전일 값을 날짜를 붙여 쓴다
+        call = r("콜금리(1일, 전체거래)", "d1"); call_lb = f"({ctx['KR']['dates']['d1'][5:].replace('-', '/')}) "
     kd = bp(r("KOFR", "d0"), r("KOFR", "d1"))
-    gap = bp(call, base) if base is not None else None
+    gap = bp(call, base) if base is not None and call is not None else None
     add("S4", "단기자금", "콜·KOFR 이탈", "red", (gap is not None and abs(gap) >= C["call_gap_bp"]) or (kd is not None and abs(kd) >= C["kofr_d_bp"]),
-        f"콜 {call:.3f}% (기준금리 {base:.2f}% 대비 {_f(gap)}bp) · KOFR 전일 " + ("미공시" if kd is None else f"{_f(kd)}bp"),
-        f"콜이 기준금리 대비 ±{C['call_gap_bp']}bp, KOFR 하루 ±{C['kofr_d_bp']}bp", "은행권 자금 부족 — RP 금리 제안 기회", "한국은행 ECOS", nodata=base is None)
+        (f"콜 {call_lb}{call:.3f}% (기준금리 {base:.2f}% 대비 {_f(gap)}bp)" if call is not None and base is not None else "콜 미공시") + " · KOFR 전일 " + ("미공시" if kd is None else f"{_f(kd)}bp"),
+        f"콜이 기준금리 대비 ±{C['call_gap_bp']}bp, KOFR 하루 ±{C['kofr_d_bp']}bp", "은행권 자금 부족 — RP 금리 제안 기회", "한국은행 ECOS", nodata=base is None or call is None)
     km = CT.get("kmb")
     rend = None
     if km:

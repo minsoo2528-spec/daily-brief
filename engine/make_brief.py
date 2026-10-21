@@ -270,7 +270,34 @@ ask = {
     "qa": CT.get("qa", []) + (json.load(open(os.path.join(ROOT, "qa_static.json"), encoding="utf-8")) if os.path.exists(os.path.join(ROOT, "qa_static.json")) else []),
 }
 
+# ---------- 현재 시황(장중 스냅샷) — 웹·앱·팀 메일 전용, 고객 PDF에는 넣지 않는다 ----------
+MN = ld("market_now.json")
+market_now = None
+if MN and str(MN.get("captured_at", ""))[:10] == CT["date"]:
+    def _pct(p, q): return round((p / q - 1) * 100, 2)
+    kr_now = []
+    for o in MN.get("kr", []):
+        if str(o.get("time", ""))[:10] != CT["date"]:
+            continue  # 아직 개장 전(전일 값)이면 넣지 않는다
+        chg = round(o["price"] - o["prev"], 2)
+        assert abs(chg - o["chg"]) < 0.015, ("market_now 등락 불일치", o["name"], chg, o["chg"])
+        inv = o.get("inv") or {}
+        kr_now.append({"name": o["name"], "price": o["price"], "chg": chg, "pct": _pct(o["price"], o["prev"]), "prev": o["prev"],
+                       "open": o["open"], "high": o["high"], "low": o["low"], "time": o["time"][11:16],
+                       "inv": {k: round(inv[k] / 1e8) for k in ("frgn", "inst", "indiv") if inv.get(k) is not None},
+                       "breadth": o.get("breadth")})
+    US_ORDER = ["US.DJI", "US.SP500", "US.COMP", "US.SOX"]
+    us_now = [{"name": o["name"], "price": o["price"], "chg": round(o["price"] - o["prev"], 2), "pct": _pct(o["price"], o["prev"]),
+               "date": md(o["time"][:10])} for o in sorted(MN.get("us", []), key=lambda x: US_ORDER.index(x["sym"]) if x["sym"] in US_ORDER else 9)]
+    fx = MN.get("fx")
+    if fx and str(fx.get("time", ""))[:10] != CT["date"]:
+        fx = None
+    market_now = {"asof": MN["captured_at"][11:16], "kr": kr_now, "us": us_now,
+                  "fx": ({"price": fx["price"], "chg": fx["chg"], "time": fx["time"][11:16]} if fx else None),
+                  "src": MN.get("src", ""), "comment": CT.get("open_comment"), "comment_src": CT.get("open_comment_src")}
+
 data = {
+    "market_now": market_now,
     "meta": {"date": CT["date"], "label": f"{bd.year}. {bd.month}. {bd.day} ({WD[bd.weekday()]})",
              "asof": f"지표 기준일 {mdw(KD['d0'])} 마감", "team": "Wholesale 금융상품영업팀", "status": CT.get("status", "팀 내부용")},
     "summary": CT["summary"], "macro": CT["macro"],

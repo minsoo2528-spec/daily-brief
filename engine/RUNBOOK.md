@@ -116,6 +116,22 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
   - 투자권유 표현 금지. 고객 안내 문구는 "[안내 초안] … 발송 전 컴플라이언스 확인 필요"를 붙인다.
 - 생성 후 검증: out/web.html을 브라우저(Playwright)로 열어 `window.ASK('오늘 핵심 3줄')`, `window.ASK('10월 자산운용 공모 은행채 순매수')`, `window.ASK('다음 주 1,000억 이상 회사채 만기')`, `window.ASK('MMF 분기말 패턴')`가 오류 없이 답하는지 확인한다.
 
+## 6-3. 현재 시황 — 장중 스냅샷 (raw/market_now.json, content.json "open_comment") — 사용자 지시 2026-10-21
+- 목적: 웹·앱 '요약' 탭과 팀 메일 맨 위에 실행 시점의 코스피·코스닥·원/달러와 전일 미국 증시 마감, 개장 시황 코멘트를 넣는다. 고객 PDF에는 넣지 않는다(장중 값은 금세 바뀐다).
+- 시점: 다른 수집과 뉴스·코멘트 작성이 끝난 뒤, 7단계 생성 **직전**에 한다(가능한 한 최신 값).
+- 수집: 내장 브라우저(Claude_Browser)로 `https://finance.daum.net/domestic` 을 열고(사이트 승인 완료), javascript_tool에 `engine\scrapers\market_now.js` 내용을 그대로 넣어 실행한다. 반환 JSON을 그대로 `raw/market_now.json`에 저장한다(값을 손으로 옮겨 적지 않는다).
+  - 네이버 증권은 브라우저 보안 정책상 열리지 않고, KRX 정보데이터시스템은 로그인이 필요해 다음 금융 시세를 쓴다. 출처 표기는 "다음 금융 시세".
+- 검증(코드로):
+  - `captured_at` 날짜가 오늘인지, 코스피·코스닥 `time` 날짜가 오늘인지(아니면 개장 전 → make_brief가 국내 값을 빼고, 알림에 적는다).
+  - 코스피·코스닥 `prev`(전일 종가)가 오늘 macro 기사·시그널의 전일 종가와 같은지. 다르면 시황 블록 전체를 빼고(raw/market_now.json 삭제) 알림에 이유를 적는다.
+  - 미국 4개 지수 `time`이 직전 미국 영업일 마감인지.
+- 코멘트(content.json "open_comment", 2~3문장, "open_comment_src"):
+  - 숫자는 market_now.json 값만 쓴다(시가 대비 상승률 등은 코드로 계산). 시각을 함께 적는다("09:2x 현재").
+  - WebSearch(standard)로 오늘 국내 증시 개장 기사(예: "코스피 출발", "개장")를 찾아 원인 설명(전일 미국 증시, 업종 흐름 등)이 있으면 "~라는 보도(매체명)"로 1문장 덧붙인다. 기사 문장 복사 금지, 수치는 기사 것이 아니라 market_now 값을 쓴다.
+  - 환율은 "원/달러 환율 상승(원화 약세)"처럼 방향을 분명히 쓴다. "강보합" 같은 모호한 표현, 매수·매도 권유 표현 금지.
+  - open_comment_src 예: "다음 금융 시세 09:27 기준 · 연합뉴스(10/21)".
+- 실패하면 raw/market_now.json을 만들지 않는다(블록이 자동으로 빠진다). 알림에 "현재 시황 미수집(이유)"을 적는다.
+
 ## 7. 생성·검증
 1. `python3 make_brief.py <엔진폴더>` → out/brief_data.json, out/web.html, out/YYYY-MM-DD_Daily_Market_Brief.pdf.
 2. 검증: PDF 텍스트(pdfplumber)에 핵심 수치(국고3년, CP91, MMF 설정원본, Repo 잔액, 자금유출입 합계)가 raw 계산값과 같은지 코드로 대조. PDF 페이지를 이미지로 한 번 확인(겹침·넘침).
@@ -134,7 +150,9 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
    - 메일 본문 링크는 claude.ai 페이지(Claude 답변 포함) 그대로 둔다.
 4. 팀 메일 자동 발송(사용자가 2026-10-20 지시: 매 실행 끝에 config.json "email"."team_to" 주소로 발송).
    - `python3 make_email.py <엔진폴더>` → out/email.json {to, subject, html, text}. 웹 게시(3번)가 끝난 뒤 실행한다.
-   - Gmail 연결의 send_message로 보낸다: to=email.json "to", subject, htmlBody=html, body=text. 첨부는 넣지 않는다(웹페이지는 본문의 링크로 연다).
+   - Gmail 연결의 send_message로 보낸다: to=email.json "to", subject, htmlBody=html, body=text.
+   - 본문에는 "자세한 사항은 어플리케이션에서 확인 바랍니다." 문구와 앱 링크(config "app_url")가 들어간다(사용자 지시 2026-10-21, make_email.py가 자동으로 넣는다). 맨 위에 현재 시황 블록(6-3)이 있다.
+   - PDF 첨부: Gmail 연결은 첨부 파일 내용을 도구 호출에 직접 써 넣어야 해서(PDF 약 540KB → 약 72만 자) 넣지 않는다. 사용자가 다른 방식을 정하면 이 줄을 바꾼다.
    - "to"가 비어 있거나 Gmail 연결이 없으면 보내지 않고 알림에 "팀 메일 미발송(이유)"을 적는다. 다른 주소로 바꾸거나 추가하지 않는다.
    - 같은 날 두 번 보내지 않는다: Gmail에서 같은 제목이 오늘 이미 보낸편지함에 있으면 건너뛴다.
 5. 사용자에게 SendUserMessage로 3~5줄 알림(기준일, 핵심 3가지, 빠진 항목, 팀 메일 발송 여부)과 PDF(SendUserFile).
