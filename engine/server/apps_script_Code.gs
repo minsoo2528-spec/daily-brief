@@ -4,6 +4,7 @@
  *  - Claude API 키는 스크립트 속성 ANTHROPIC_API_KEY 에만 둔다(코드·앱에 넣지 않음).
  *  - Gmail은 읽기 전용(gmail.readonly)으로, 정해진 검색어('MMF', '공문')의 최근 14일 메일만 읽는다.
  *  - 스크립트 속성 TEAM_CODE를 넣으면 접속 코드가 필요하고, 비워 두면 누구나 사용(사용자 결정 2026-10-22).
+ *  - /ecos·/dart: 보는 사람이 페이지에 넣은 본인 인증키로 한국은행 ECOS·OpenDART를 대신 조회(키는 저장하지 않음).
  * 요청: POST(text/plain) 본문 JSON {path:"/ask"|"/mail", ...}. 응답 JSON, 실패 시 {error, message}.
  */
 var QUERIES = {
@@ -24,6 +25,8 @@ function doPost(e) {
     if (team && String(body.code || "") !== team) return out_({ error: "bad_team_code" });
     if (body.path === "/ask") return out_(ask_(body, P));
     if (body.path === "/mail") return out_(mail_(body));
+    if (body.path === "/ecos") return out_(ecos_(body));
+    if (body.path === "/dart") return out_(dart_(body));
     return out_({ error: "not_found" });
   } catch (err) {
     return out_({ error: err.code || "upstream_error", message: String(err.message || err).slice(0, 300) });
@@ -88,4 +91,36 @@ function bodyText_(p) {
   if (plain) return plain;
   return html.replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/(p|div|li|tr)>/gi, "\n").replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/\n{3,}/g, "\n\n").trim();
+}
+
+// ── 한국은행 ECOS 시장금리(일별, 817Y002): 보는 사람의 인증키로 최근 15일 전 항목 ──
+function ymd_(d) { return Utilities.formatDate(d, "Asia/Seoul", "yyyyMMdd"); }
+function ecos_(body) {
+  var key = String(body.key || "");
+  if (!/^[A-Za-z0-9]{8,64}$/.test(key)) throw fail_("bad_key", "ECOS 인증키 형식이 맞지 않습니다");
+  var end = new Date(), start = new Date(end.getTime() - 15 * 864e5);
+  var url = "https://ecos.bok.or.kr/api/StatisticSearch/" + key + "/json/kr/1/1000/817Y002/D/" + ymd_(start) + "/" + ymd_(end);
+  var r = UrlFetchApp.fetch(url, { muteHttpExceptions: true }), j = {};
+  try { j = JSON.parse(r.getContentText()); } catch (x) { throw fail_("upstream_error", "ECOS 응답 " + r.getResponseCode()); }
+  if (!j.StatisticSearch) { var m = j.RESULT || {}; throw fail_(m.CODE === "INFO-100" ? "bad_key" : "ecos_error", (m.CODE || "") + " " + (m.MESSAGE || "ECOS 오류")); }
+  return { asof_query: ymd_(end), rows: (j.StatisticSearch.row || []).map(function (x) {
+    return { code: x.ITEM_CODE1, name: x.ITEM_NAME1, time: x.TIME, value: x.DATA_VALUE, unit: x.UNIT_NAME };
+  }) };
+}
+
+// ── OpenDART 공시검색: 보는 사람의 인증키로 최근 공시(기본: 발행공시 C, 최근 3일) ──
+function dart_(body) {
+  var key = String(body.key || "");
+  if (!/^[A-Za-z0-9]{40}$/.test(key)) throw fail_("bad_key", "OpenDART 인증키는 영문·숫자 40자입니다");
+  var ty = /^[A-J]$/.test(String(body.type || "")) ? body.type : "C";
+  var days = Math.min(Math.max(Number(body.days) || 3, 1), 14);
+  var end = new Date(), start = new Date(end.getTime() - (days - 1) * 864e5);
+  var url = "https://opendart.fss.or.kr/api/list.json?crtfc_key=" + key + "&bgn_de=" + ymd_(start) + "&end_de=" + ymd_(end) + "&pblntf_ty=" + ty + "&page_no=1&page_count=100";
+  var r = UrlFetchApp.fetch(url, { muteHttpExceptions: true }), j = {};
+  try { j = JSON.parse(r.getContentText()); } catch (x) { throw fail_("upstream_error", "OpenDART 응답 " + r.getResponseCode()); }
+  if (j.status === "013") return { list: [], total: 0, bgn: ymd_(start), end: ymd_(end) };
+  if (j.status !== "000") throw fail_(j.status === "010" || j.status === "011" ? "bad_key" : "dart_error", (j.status || "") + " " + (j.message || "OpenDART 오류"));
+  return { total: j.total_count, bgn: ymd_(start), end: ymd_(end), list: (j.list || []).map(function (x) {
+    return { corp: x.corp_name, report: x.report_nm, rcept_no: x.rcept_no, date: x.rcept_dt, filer: x.flr_nm, cls: x.corp_cls };
+  }) };
 }

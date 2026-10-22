@@ -277,6 +277,15 @@ ul.mo li b { font: 500 0.78rem var(--mono); }
 .livebtn:disabled { opacity: .6; cursor: default; } .livebtn:focus-visible { outline: 2px solid var(--s1); outline-offset: 2px; }
 .livemsg { margin-top: 8px; font-size: 0.86rem; font-weight: 600; }
 .tcform { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; font-size: 0.82rem; } .tcform input { flex: 1; min-width: 120px; border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font: 400 0.88rem var(--font); background: var(--surface); color: var(--ink); } .tcform button { border: 0; border-radius: 8px; padding: 7px 12px; background: var(--accent); color: #fff; font: 600 0.82rem var(--font); cursor: pointer; }
+.apibtn { margin-top: 6px; border: 1px solid color-mix(in srgb, var(--brand-ink) 45%, transparent); background: transparent; color: inherit; border-radius: 999px; padding: 3px 10px; font: 600 0.74rem var(--font); cursor: pointer; }
+.apidlg { position: fixed; inset: 0; z-index: 60; background: rgba(0,0,0,.45); display: grid; place-items: center; padding: 16px; }
+.apidlg[hidden] { display: none; }
+.apibox { width: min(440px, 100%); background: var(--surface); color: var(--ink); border-radius: 12px; padding: 18px; display: grid; gap: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.3); }
+.apibox h3 { margin: 0; font-size: 1.05rem; } .apibox label { display: grid; gap: 4px; font-size: 0.84rem; font-weight: 600; }
+.apibox input { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: 400 0.9rem var(--mono); background: var(--surface); color: var(--ink); }
+.apibox a { font-size: 0.76rem; color: var(--s1); margin-top: -4px; }
+.apibtns { display: flex; justify-content: flex-end; gap: 6px; margin-top: 4px; } .apibtns button { border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 8px; padding: 7px 12px; font: 600 0.84rem var(--font); cursor: pointer; }
+.apibtns button[type=submit] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .livenote { margin-top: 6px; font-size: 0.74rem; color: var(--muted); }
 .newtag { font-style: normal; font: 700 0.6rem var(--mono); color: #fff; background: var(--accent); border-radius: 4px; padding: 1px 4px; margin-right: 4px; vertical-align: 1px; }
 tr.lnew td { background: var(--sig-org-bg); } li.lnew { background: var(--sig-org-bg); border-radius: 4px; } .nitem.lnew { background: var(--sig-org-bg); border-radius: 6px; padding: 10px 8px 8px; }
@@ -369,6 +378,15 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
 
 <main><div class="wrap" id="main"></div></main>
 
+<div id="apidlg" class="apidlg" hidden role="dialog" aria-modal="true" aria-labelledby="apidlg-t"><form class="apibox">
+  <h3 id="apidlg-t">API 설정</h3>
+  <p class="h2s" style="margin:0">무료로 발급받은 본인 인증키를 넣으세요. 이 브라우저에만 저장됩니다.</p>
+  <label>한국은행 ECOS 인증키<input name="ecos" type="password" autocomplete="off" spellcheck="false" placeholder="ECOS Open API 인증키"></label>
+  <a href="https://ecos.bok.or.kr/api/" target="_blank" rel="noopener noreferrer">ECOS 인증키 발급 안내 ↗</a>
+  <label>OpenDART 인증키 (40자)<input name="dart" type="password" autocomplete="off" spellcheck="false" placeholder="OpenDART 인증키"></label>
+  <a href="https://opendart.fss.or.kr/" target="_blank" rel="noopener noreferrer">OpenDART 인증키 신청 ↗</a>
+  <div class="apibtns"><button type="button" data-api="clear">지우기</button><button type="button" data-api="close">닫기</button><button type="submit">저장</button></div>
+</form></div>
 <footer class="foot"><div class="wrap" id="foot"></div><!--__CI_FOOT__--></footer>
 
 <script type="application/json" id="brief-data">/*__BRIEF_DATA__*/null</script>
@@ -680,6 +698,62 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
       return Promise.all(th.map(function (t) { return LIVE.mcp.callTool("Gmail", "get_thread", { threadId: t.id, messageFormat: "PLAIN_TEXT" }, { cache: false }).then(function (x) { return (x.payload && x.payload.messages) || []; }); }));
     }).then(function (lists) { return [].concat.apply([], lists).filter(keep).slice(0, limit); });
   }
+  // ── 실시간 API(한국은행 ECOS·OpenDART): 보는 사람이 'API 설정'에 넣은 본인 인증키로, 시연 서버를 거쳐 조회(키는 이 브라우저에만 저장) ──
+  var AK = { ecos: "dbrief_key_ecos", dart: "dbrief_key_dart" };
+  function apiKey(k) { try { return localStorage.getItem(AK[k]) || ""; } catch (e) { return ""; } }
+  function setApiKey(k, v) { try { if (v) localStorage.setItem(AK[k], v); else localStorage.removeItem(AK[k]); } catch (e) {} }
+  var LIVEAPI = { ecos: null, dart: null, ecosMsg: "", dartMsg: "", busyE: false, busyD: false };
+  function apiErr(e, what) {
+    var c = (e && e.code) || "upstream_error";
+    if (c === "bad_key") return what + " 인증키가 맞지 않습니다. 'API 설정'에서 확인하세요.";
+    if (c === "network") return "시연 서버에 연결하지 못했습니다. 인터넷 연결을 확인하세요.";
+    return what + " 조회에 실패했습니다" + (e && e.message ? "(" + e.message + ")" : "") + ".";
+  }
+  function liveApiCard() {
+    if (!REMOTE.on) return card("실시간 조회 (한국은행 ECOS·DART API)", "", '<p class="empty">설치형 앱이나 HTML 파일에서 쓸 수 있습니다. 오른쪽 위 \'API 설정\'에 본인 인증키를 넣으면 최신 금리와 공시를 바로 불러옵니다.</p>');
+    var hasE = !!apiKey("ecos"), hasD = !!apiKey("dart");
+    var eBody = "";
+    if (LIVEAPI.ecos) {
+      var g = {}; LIVEAPI.ecos.rows.forEach(function (r) { (g[r.code] = g[r.code] || { name: r.name, rows: [] }).rows.push(r); });
+      var rows = Object.keys(g).map(function (k) {
+        var a = g[k].rows.filter(function (r) { return r.value !== "" && r.value != null; }).sort(function (x, y) { return x.time < y.time ? -1 : 1; });
+        if (!a.length) return "";
+        var l = a[a.length - 1], p = a.length > 1 ? a[a.length - 2] : null, ch = p ? Math.round((Number(l.value) - Number(p.value)) * 1000) / 10 : null;
+        return "<tr><td>" + esc(g[k].name) + "</td><td>" + esc(Number(l.value).toFixed(3)) + "</td><td>" + (ch == null ? "-" : (ch > 0 ? "+" : ch < 0 ? "−" : "") + Math.abs(ch).toFixed(1)) + "</td><td>" + esc(l.time.slice(4, 6) + "/" + l.time.slice(6, 8)) + "</td></tr>";
+      }).join("");
+      eBody = '<div class="tbl"><table><thead><tr><th>항목</th><th>최근 값(%)</th><th>전 영업일 대비(bp)</th><th>기준일</th></tr></thead><tbody>' + rows + "</tbody></table></div>";
+    }
+    var dBody = "";
+    if (LIVEAPI.dart) {
+      var L = LIVEAPI.dart.list;
+      dBody = L.length ? '<div class="tbl"><table class="mtbl"><thead><tr><th>접수일</th><th>회사</th><th>보고서</th></tr></thead><tbody>' + L.map(function (x) {
+        var bond = /채무증권|사채|발행조건/.test(x.report);
+        return "<tr><td>" + esc(x.date.slice(4, 6) + "/" + x.date.slice(6, 8)) + "</td><td>" + esc(x.corp) + '</td><td style="text-align:left;white-space:normal">' + (bond ? '<i class="newtag">채권</i>' : "") +
+          '<a href="https://dart.fss.or.kr/dsaf001/main.do?rcpNo=' + encodeURIComponent(x.rcept_no) + '" target="_blank" rel="noopener noreferrer">' + esc(x.report) + "</a></td></tr>";
+      }).join("") + "</tbody></table></div>" : '<p class="empty">조회 기간에 발행공시가 없습니다.</p>';
+    }
+    return '<div class="card livebox"><h3><span>실시간 조회 (한국은행 ECOS·DART API)</span><span class="asof">본인 인증키 · 버튼을 누를 때 최신 값</span></h3>' +
+      '<div class="liveh"><div><b>한국은행 시장금리(일별)</b> <span class="h2s">ECOS 817Y002 · 최근 15일</span></div><button type="button" id="api-ecos" class="livebtn"' + (LIVEAPI.busyE || !hasE ? " disabled" : "") + ">" + (LIVEAPI.busyE ? "불러오는 중…" : "금리 불러오기") + "</button></div>" +
+      (hasE ? "" : '<div class="livemsg">\'API 설정\'에 ECOS 인증키를 넣으면 쓸 수 있습니다.</div>') + (LIVEAPI.ecosMsg ? '<div class="livemsg">' + esc(LIVEAPI.ecosMsg) + "</div>" : "") + eBody +
+      '<div class="liveh" style="margin-top:14px"><div><b>DART 발행공시</b> <span class="h2s">최근 3일 · 채권 관련 표시</span></div><button type="button" id="api-dart" class="livebtn"' + (LIVEAPI.busyD || !hasD ? " disabled" : "") + ">" + (LIVEAPI.busyD ? "불러오는 중…" : "공시 불러오기") + "</button></div>" +
+      (hasD ? "" : '<div class="livemsg">\'API 설정\'에 OpenDART 인증키를 넣으면 쓸 수 있습니다.</div>') + (LIVEAPI.dartMsg ? '<div class="livemsg">' + esc(LIVEAPI.dartMsg) + "</div>" : "") + dBody +
+      '<div class="livenote">값은 한국은행 ECOS와 금융감독원 OpenDART가 돌려준 원자료를 그대로 표시합니다(가공·추정 없음). 인증키는 이 브라우저에만 저장되고 조회할 때만 시연 서버를 거쳐 각 기관으로 전달됩니다.</div></div>';
+  }
+  function runEcos() {
+    if (LIVEAPI.busyE) return; LIVEAPI.busyE = true; LIVEAPI.ecosMsg = ""; go("bond", false);
+    remotePost("/ecos", { key: apiKey("ecos") }).then(function (r) { LIVEAPI.ecos = r; LIVEAPI.ecosMsg = r.rows.length ? "" : "조회된 값이 없습니다."; })
+      .catch(function (e) { LIVEAPI.ecosMsg = apiErr(e, "ECOS"); }).then(function () { LIVEAPI.busyE = false; if (current === "bond") go("bond", false); });
+  }
+  function runDart() {
+    if (LIVEAPI.busyD) return; LIVEAPI.busyD = true; LIVEAPI.dartMsg = ""; go("bond", false);
+    remotePost("/dart", { key: apiKey("dart"), type: "C", days: 3 }).then(function (r) { LIVEAPI.dart = r; LIVEAPI.dartMsg = "발행공시 " + r.list.length + "건 (" + r.bgn.slice(4, 6) + "/" + r.bgn.slice(6) + "~" + r.end.slice(4, 6) + "/" + r.end.slice(6) + ")"; })
+      .catch(function (e) { LIVEAPI.dartMsg = apiErr(e, "OpenDART"); }).then(function () { LIVEAPI.busyD = false; if (current === "bond") go("bond", false); });
+  }
+  function openApiSettings() {
+    var d = document.getElementById("apidlg"); if (!d) return;
+    d.querySelector("[name=ecos]").value = apiKey("ecos"); d.querySelector("[name=dart]").value = apiKey("dart");
+    d.hidden = false; d.querySelector("[name=ecos]").focus();
+  }
   // ── MMF 주문 · 메일함 확인(시연): 보는 사람의 Gmail에서 'MMF' 메일을 읽어 Claude가 추출 → 코드가 원문 대조 → 화면 반영(저장하지 않음) ──
   var LIVE = { mcp: null, sample: null, busy: false, seen: {}, msg: "", ok: 0, bad: 0, at: "" };
   var MQ = 'MMF -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d';
@@ -871,7 +945,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
   }
   R.bond = function () {
     var b = B.bond;
-    return '<section class="panel"><h2>채권 시황</h2><div class="grid2">' +
+    return '<section class="panel"><h2>채권 시황</h2>' + liveApiCard() + '<div class="grid2">' +
       card("국내 금리", "%, 변동 bp", tableHTML(b.head, b.rates)) +
       '<div style="display:grid;gap:18px;min-width:0">' + card("국고채 수익률 곡선", "%", chartHTML("c-curve", "%")) +
       card("스프레드", "bp", tableHTML(b.head, b.spreads)) + "</div></div>" +
@@ -1037,6 +1111,8 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
   main.addEventListener("click", function (e) {
     if (e.target.closest("#mmf-live")) { liveRun(); return; }
     if (e.target.closest("#ntc-live")) { ntcRun(); return; }
+    if (e.target.closest("#api-ecos")) { runEcos(); return; }
+    if (e.target.closest("#api-dart")) { runDart(); return; }
     var gt = e.target.closest("[data-go]"); if (gt) { go(gt.getAttribute("data-go"), true); return; }
     var op = e.target.closest("[data-open]"), bk = e.target.closest("[data-back]");
     if (op) { var p = op.getAttribute("data-open").split(":"); main.innerHTML = detailHTML(p[0], +p[1]); window.scrollTo(0, 0); var bb = main.querySelector(".back"); if (bb) bb.focus(); }
@@ -1209,6 +1285,22 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
     });
   }
 
+  (function () {
+    var d = document.getElementById("apidlg"); if (!d) return;
+    var hdr = document.querySelector(".brandrow .date");
+    if (hdr && REMOTE.on) { var b = document.createElement("button"); b.type = "button"; b.className = "apibtn"; b.textContent = "⚙ API 설정"; b.addEventListener("click", openApiSettings); hdr.appendChild(b); }
+    d.addEventListener("click", function (e) {
+      var a = e.target.getAttribute && e.target.getAttribute("data-api");
+      if (e.target === d || a === "close") d.hidden = true;
+      if (a === "clear") { setApiKey("ecos", ""); setApiKey("dart", ""); d.querySelector("[name=ecos]").value = ""; d.querySelector("[name=dart]").value = ""; LIVEAPI.ecos = LIVEAPI.dart = null; if (current === "bond") go("bond", false); }
+    });
+    d.querySelector("form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var ek = d.querySelector("[name=ecos]").value.trim(), dk = d.querySelector("[name=dart]").value.trim();
+      setApiKey("ecos", ek); setApiKey("dart", dk); d.hidden = true; if (current === "bond") go("bond", false);
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") d.hidden = true; });
+  })();
   document.getElementById("foot").innerHTML = "<div>" + esc(B.meta.team) + " · " + esc(B.meta.status) + " · 참고자료이며 특정 상품의 투자권유를 목적으로 하지 않습니다. 수치는 각 출처의 기준일 값입니다.</div><ul>" + B.sources.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + "</ul>";
 })();
 </script>
