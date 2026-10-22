@@ -537,7 +537,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
   };
   // ── 펀드 관리 · 메일함 확인(시연): '공문'이 들어간 메일을 읽어 Claude가 일정·금액 추출 → 코드가 원문 대조 → 화면 반영(저장하지 않음) ──
   var NLIVE = { busy: false, seen: {}, msg: "" };
-  var NQ = '공문 -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d';
+  var NQ = 'subject:공문 -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d';
   var NTYPES = ["설정", "캐피탈콜", "배당", "만기·청산", "수익자총회", "기타"];
   function lparseDate(t, yr) {
     var m = /(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(t) || /(\d{4})[-.\/](\d{1,2})[-.\/](\d{1,2})/.exec(t), y, mo, d;
@@ -557,7 +557,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
     N.kpi.call_due = up.filter(function (e) { return e.type === "캐피탈콜"; }).reduce(function (a, e) { return a + (e.total || 0); }, 0);
     N.kpi.dist_due = up.filter(function (e) { return e.type === "배당" && /지급/.test(e.label); }).reduce(function (a, e) { return a + (e.total || 0); }, 0);
   }
-  function ntcCard() { return liveBox(NLIVE, "ntc-live", "시연 · 내 Gmail에서 '공문'이 들어간 최근 14일 메일을 읽어 일정·금액을 추가", "추가된 공문은 이 화면에만 보이며 새로고침하면 사라집니다. 날짜·금액은 메일 원문 문구와 코드로 대조한 것만 넣고, 맞지 않으면 '확인 필요'로 뺍니다. 메일 본문은 Claude에게 데이터로만 전달됩니다."); }
+  function ntcCard() { return liveBox(NLIVE, "ntc-live", "시연 · 내 Gmail에서 제목에 '공문'이 있는 최근 14일 메일을 읽어 일정·금액을 추가", "추가된 공문은 이 화면에만 보이며 새로고침하면 사라집니다. 날짜·금액은 메일 원문 문구와 코드로 대조한 것만 넣고, 맞지 않으면 '확인 필요'로 뺍니다. 메일 본문은 Claude에게 데이터로만 전달됩니다."); }
   function ntcRun() {
     var N = B.notices; if (!N || NLIVE.busy || !LIVE.mcp || !LIVE.sample) return;
     NLIVE.busy = true; NLIVE.msg = "메일함에서 '공문' 메일을 찾는 중…"; go("notices", false);
@@ -706,7 +706,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
   };
   remoteSample.limits = function () { return Promise.resolve({ tools: { maxCount: 8 } }); };
   function getMails(kind, re, have, seen, limit) {
-    var keep = function (m) { return m && m.id && !have[m.id] && !seen[m.id] && (m.labelIds || []).indexOf("DRAFT") < 0 && re.test((m.subject || "") + " " + (m.plaintextBody || "")); };
+    var keep = function (m) { return m && m.id && !have[m.id] && !seen[m.id] && (m.labelIds || []).indexOf("DRAFT") < 0 && re.test(m.subject || ""); };
     if (REMOTE.on) return remotePost("/mail", { kind: kind }).then(function (r) { return (r.mails || []).filter(keep).slice(0, limit); });
     return LIVE.mcp.callTool("Gmail", "search_threads", { query: kind === "mmf" ? MQ : NQ, pageSize: 10 }, { cache: false }).then(function (r) {
       var th = ((r && r.payload && r.payload.threads) || []).slice(0, 10);
@@ -771,7 +771,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
   }
   // ── MMF 주문 · 메일함 확인(시연): 보는 사람의 Gmail에서 'MMF' 메일을 읽어 Claude가 추출 → 코드가 원문 대조 → 화면 반영(저장하지 않음) ──
   var LIVE = { mcp: null, sample: null, busy: false, seen: {}, msg: "", ok: 0, bad: 0, at: "" };
-  var MQ = 'MMF -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d';
+  var MQ = 'subject:MMF -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d';
   var lnorm = function (t) { return String(t || "").replace(/\s+/g, " ").trim(); };
   function lparseKrw(t) {
     var m = /(?:(\d[\d,]*)\s*조)?\s*(?:(\d[\d,]*)\s*억)?\s*(?:(\d[\d,]*)\s*만)?\s*원/.exec(t);
@@ -810,7 +810,7 @@ table.sigt td:nth-child(3) { font-size: 0.8rem; color: var(--ink-2); }
       '<button type="button" id="' + id + '" class="livebtn"' + (st.busy ? " disabled" : "") + ">" + (st.busy ? "확인 중…" : "메일함 확인") + "</button></div>" +
       (st.msg ? '<div class="livemsg">' + esc(st.msg) + "</div>" : "") + '<div class="livenote">' + esc(note) + "</div></div>";
   }
-  function liveCard() { return liveBox(LIVE, "mmf-live", "시연 · 내 Gmail에서 'MMF'가 들어간 최근 14일 메일을 읽어 주문을 추가", "추가된 주문은 이 화면에만 보이며 새로고침하면 사라집니다. 날짜·금액·매수/환매는 메일 원문 문구와 코드로 대조한 것만 합계에 넣습니다. 메일 본문은 Claude에게 데이터로만 전달됩니다."); }
+  function liveCard() { return liveBox(LIVE, "mmf-live", "시연 · 내 Gmail에서 제목에 'MMF'가 있는 최근 14일 메일을 읽어 주문을 추가", "추가된 주문은 이 화면에만 보이며 새로고침하면 사라집니다. 날짜·금액·매수/환매는 메일 원문 문구와 코드로 대조한 것만 합계에 넣습니다. 메일 본문은 Claude에게 데이터로만 전달됩니다."); }
   function liveErr(e) {
     var c = (e && e.code) || "upstream_error";
     var M = { server_not_connected: "Gmail 커넥터가 연결되어 있지 않습니다. claude.ai 설정 → 커넥터에서 Gmail을 추가하세요.",

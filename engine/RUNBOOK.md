@@ -136,7 +136,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 - 목적: 운용사가 판매사 공용 메일로 보내는 공문(설정·캐피탈콜·배당·만기청산·수익자총회 등)에서 일정·금액을 뽑아 '펀드 관리' 탭(BETA, 구 '공문 일정')에 모은다.
 - 현재 단계: **가상 공문으로만 운영**한다. 실제 공용 메일(회사 메일)은 연결하지 않았고, 수익자명·금액 등 고객정보를 외부 AI로 처리해도 되는지 사내 확인 전이다. 실제 메일을 읽거나 다른 메일함을 찾아 연결하지 않는다.
 - 매일 할 일: 두 파일을 그대로 두고 make_brief.py만 실행한다(notices.py가 원문 대조 후 화면 데이터를 만든다. D-day는 실행일 기준으로 자동 계산).
-- 메일함 확인(시연, 사용자 결정 2026-10-22): 펀드 관리 탭에도 '메일함 확인' 버튼이 있다. '공문'이 들어간 최근 14일 Gmail 메일을 읽어 Claude가 일정·금액을 뽑고 페이지 코드가 원문과 대조해 화면에만 더한다(저장 안 함). 작동 조건과 주의는 6-5의 MMF 메일함 확인과 같다.
+- 메일함 확인(시연, 사용자 결정 2026-10-22): 펀드 관리 탭에도 '메일함 확인' 버튼이 있다. 제목에 '공문'이 있는 최근 14일 Gmail 메일을 읽어 Claude가 일정·금액을 뽑고 페이지 코드가 원문과 대조해 화면에만 더한다(저장 안 함). 작동 조건과 주의는 6-5의 MMF 메일함 확인과 같다.
 - 실제 연결 후 절차(사용자가 지시하면): 새 공문 메일 본문을 받은편지함 파일에 추가 → 공문마다 notice_extract.json에 {id,type,manager,fund,summary,events[{date,label,src}],amounts[{label,investor?,won,src}]} 작성. src는 메일 본문 문구를 그대로 복사하고, date·won은 그 문구에서 읽은 값. notices.py가 원문과 다르면 '확인 필요'로 빼므로 추정으로 채우지 않는다.
 - 공개 범위(사용자 결정 2026-10-21): 받은편지함 파일이 "sample": true(가상)일 때만 앱에도 넣는다. 실제 메일 데이터("sample": false 또는 없음)는 make_brief.py가 앱용 web_public.html에서 자동으로 빼고, build_pages.py가 한 번 더 확인해 섞여 있으면 중단한다(앱 저장소·주소가 공개이므로). claude.ai 팀 페이지에는 항상 넣는다. 고객 PDF·팀 메일에는 넣지 않는다. 실제 메일을 연결할 때는 받은편지함 파일을 새로 만들고 "sample" 키를 넣지 않는다.
 
@@ -144,7 +144,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 - 목적: 고객(제조업·금융기관 등)이 메일로 미리 보내는 MMF 주문("특정일에 특정금액 매수/환매")을 'MMF 주문' 탭(BETA)에 영업일별로 모은다. 펀드 관리(6-4)와 별도 탭.
 - 현재 단계: **가상 주문 메일로만 운영**한다. 실제 메일함은 연결하지 않는다(6-4와 같은 이유).
 - 매일 할 일: 두 파일을 그대로 두고 make_brief.py만 실행한다(mmf_orders.py가 원문 대조 후 오늘부터 10영업일 바둑판·합계를 만든다).
-- 메일함 확인(시연, 사용자 결정 2026-10-22): claude.ai 페이지의 MMF 주문 탭에 '메일함 확인' 버튼이 있다. 보는 사람이 누르면 페이지가 그 사람의 Gmail에서 'MMF'가 들어간 최근 14일 메일(제목에 Daily Brief 포함 메일 제외)을 읽고, Claude가 주문을 뽑고, 페이지 코드가 원문 문구로 실행일·금액·매수/환매를 대조해 화면에만 더한다(저장 안 함, 새로고침하면 사라짐). 이 기능은 아티팩트에 저장된 capabilities(sample + mcp: Gmail search_threads·get_thread)로 작동하므로, 매일 게시할 때 capabilities 인자를 넘기지 않는다(넘기면 꺼진다). 예약 실행은 이 메일을 읽거나 raw 파일에 넣지 않는다. 공개 앱에서는 버튼이 보이지 않는다.
+- 메일함 확인(시연, 사용자 결정 2026-10-22): claude.ai 페이지의 MMF 주문 탭에 '메일함 확인' 버튼이 있다. 보는 사람이 누르면 페이지가 그 사람의 Gmail에서 제목에 'MMF'가 있는 최근 14일 메일(제목에 Daily Brief 포함 메일 제외)을 읽고, Claude가 주문을 뽑고, 페이지 코드가 원문 문구로 실행일·금액·매수/환매를 대조해 화면에만 더한다(저장 안 함, 새로고침하면 사라짐). 이 기능은 아티팩트에 저장된 capabilities(sample + mcp: Gmail search_threads·get_thread)로 작동하므로, 매일 게시할 때 capabilities 인자를 넘기지 않는다(넘기면 꺼진다). 예약 실행은 이 메일을 읽거나 raw 파일에 넣지 않는다. 공개 앱에서는 버튼이 보이지 않는다.
 - 실제 연결 후 절차(사용자가 지시하면): 주문 메일 본문을 받은편지함 파일에 추가 → 주문마다 mmf_extract.json "orders"에 {id, client, side(매수|환매), date, won, src, note?} 작성(한 메일에 주문이 여러 건이면 여러 줄). 고객 업종은 "clients"에 적는다. src는 본문 문구 그대로, date·won·side는 그 문구에서 읽은 값. 어긋나면 '확인 필요'로 합계에서 빠진다.
 - 공개 범위(사용자 결정 2026-10-21): 받은편지함 파일이 "sample": true(가상)일 때만 앱에도 넣는다. 실제 메일 데이터("sample": false 또는 없음)는 make_brief.py가 앱용 web_public.html에서 자동으로 빼고, build_pages.py가 한 번 더 확인해 섞여 있으면 중단한다(앱 저장소·주소가 공개이므로). claude.ai 팀 페이지에는 항상 넣는다. 고객 PDF·팀 메일에는 넣지 않는다. 실제 메일을 연결할 때는 받은편지함 파일을 새로 만들고 "sample" 키를 넣지 않는다.
 
@@ -183,7 +183,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 
 ## 부록. 앱용 시연 서버(사용자 결정 2026-10-22)
 - 목적: claude.ai 밖(설치형 앱·HTML)에서도 Claude 답변과 메일함 확인(MMF·공문)을 쓰게 한다. 발표 시연용.
-- 서버: Google Apps Script 웹앱 "Daily Brief 시연 서버"(minsoo2528 계정, 코드 사본 engine\server\apps_script\). 누구나 접근, minsoo2528 권한으로 실행, Gmail은 읽기 전용, 'MMF'·'공문' 최근 14일 메일만.
+- 서버: Google Apps Script 웹앱 "Daily Brief 시연 서버"(minsoo2528 계정, 코드 사본 engine\server\apps_script\). 누구나 접근, minsoo2528 권한으로 실행, Gmail은 읽기 전용, 제목에 'MMF'·'공문'이 있는 최근 14일 메일만.
 - config.json "remote_api"에 웹앱 주소(https://script.google.com/macros/s/.../exec)가 있으면 make_brief.py가 페이지 데이터(meta.remote_api)에 넣고, 앱·HTML에서는 그 서버를 쓴다. claude.ai 페이지는 기존 방식(보는 사람 계정). 비우면 앱에서 두 기능이 숨겨진다.
 - Claude API 키는 Apps Script 스크립트 속성 ANTHROPIC_API_KEY에만 있다. config.json·저장소·페이지에 넣지 않는다. 예약 실행은 서버를 바꾸지 않는다.
 - 시연이 끝나면 사용자가 Apps Script에서 배포를 '보관(중지)'하고 config.json의 remote_api를 비운다.

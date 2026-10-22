@@ -2,14 +2,15 @@
  * Fund Sales Daily Brief — 발표 시연용 중계 서버 (Google Apps Script 웹앱)
  * 앱·HTML에서 Claude 챗봇과 '메일함 확인'(MMF 주문·펀드 관리)을 쓰게 한다.
  *  - Claude API 키는 스크립트 속성 ANTHROPIC_API_KEY 에만 둔다(코드·앱에 넣지 않음).
- *  - Gmail은 읽기 전용(gmail.readonly)으로, 정해진 검색어('MMF', '공문')의 최근 14일 메일만 읽는다.
+ *  - Gmail은 읽기 전용(gmail.readonly)으로, 제목에 'MMF' 또는 '공문'이 있는 최근 14일 메일만 읽는다.
  *  - 스크립트 속성 TEAM_CODE를 넣으면 접속 코드가 필요하고, 비워 두면 누구나 사용(사용자 결정 2026-10-22).
  *  - /ecos·/dart: 보는 사람이 페이지에 넣은 본인 인증키로 한국은행 ECOS·OpenDART를 대신 조회(키는 저장하지 않음).
  * 요청: POST(text/plain) 본문 JSON {path:"/ask"|"/mail", ...}. 응답 JSON, 실패 시 {error, message}.
  */
+// 검색 범위: 제목에 'MMF' 또는 '공문'이 있는 최근 14일 메일만(본문에만 있는 메일은 읽지 않음, 2026-10-22 범위 축소)
 var QUERIES = {
-  mmf: { q: 'MMF -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d', re: /MMF/i },
-  notice: { q: '공문 -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d', re: /공문/ }
+  mmf: { q: 'subject:MMF -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d', re: /MMF/i },
+  notice: { q: 'subject:공문 -subject:"Daily Brief" -subject:"앱 push 시험" newer_than:14d', re: /공문/ }
 };
 var MAX_BODY = 400 * 1024, MAX_TOKENS = 2000, MAX_THREADS = 10;
 
@@ -67,7 +68,7 @@ function mail_(body) {
       if ((m.labelIds || []).indexOf("DRAFT") >= 0) return;
       var h = {}; ((m.payload && m.payload.headers) || []).forEach(function (x) { h[x.name.toLowerCase()] = x.value; });
       var text = bodyText_(m.payload), subject = h.subject || "";
-      if (!Q.re.test(subject + " " + text)) return;
+      if (!Q.re.test(subject)) return;
       mails.push({ id: m.id, date: new Date(Number(m.internalDate)).toISOString(), sender: h.from || "", subject: subject,
         plaintextBody: text.slice(0, 20000), labelIds: m.labelIds || [] });
     });

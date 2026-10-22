@@ -35,7 +35,7 @@ AI 에이전트(Claude)가 매 영업일 오전 9시에 공개 시장 데이터�
 | `templates/pdf_template.html` | 고객 PDF 양식 |
 | `make_email.py` | 팀 메일 본문(현재 시황 + 시그널 요약 + 링크) 생성 |
 | `build_pages.py`, `pages/` | 설치형 앱 파일 생성(아이콘, 오프라인 지원). 실제 메일 데이터가 섞이면 중단 |
-| `server/apps_script_Code.gs`, `server/apps_script_appsscript.json` | 앱용 시연 서버(Google Apps Script): Claude API 중계, Gmail 읽기 전용, ECOS·OpenDART 중계 |
+| `server/apps_script_Code.gs`, `server/apps_script_appsscript.json` | 앱용 시연 서버(Google Apps Script): Claude API 중계, Gmail 읽기 전용(제목에 MMF·공문이 있는 메일만), ECOS·OpenDART 중계 |
 | `server/cloudflare_worker.js` | 같은 기능의 Cloudflare Worker 대안 코드(현재 미사용) |
 | `qa_static.json` | 질문하기 용어 설명 |
 | `config.example.json` | 설정 예시 (휴일, 시그널 기준값, 메일 받는 사람, 시연 서버 주소) |
