@@ -305,7 +305,8 @@ mmf_data = MMF.build(RAW, CT["date"], _cfg.get("holidays", []))
 data = {
     "market_now": market_now, "notices": notices_data, "mmf_orders": mmf_data,
     "meta": {"date": CT["date"], "label": f"{bd.year}. {bd.month}. {bd.day} ({WD[bd.weekday()]})",
-             "asof": f"지표 기준일 {mdw(KD['d0'])} 마감", "team": "Wholesale 금융상품영업팀", "status": CT.get("status", "팀 내부용")},
+             "asof": f"지표 기준일 {mdw(KD['d0'])} 마감", "team": "Wholesale 금융상품영업팀", "status": CT.get("status", "팀 내부용"),
+             "remote_api": str(_cfg.get("remote_api", "") or "").rstrip("/")},
     "summary": CT["summary"], "macro": CT["macro"],
     "realestate": {"news": CT["fund_news"], "flows_comment": CT["flows_comment"],
                    "flows": {"asof": md(FS["asof"]), "rows": flows,
