@@ -18,5 +18,6 @@
   "web_url": "https://claude.ai/artifact/A9xGuRin8tpMD7bPNiiG1i",
   "app_url": "https://minsoo2528-spec.github.io/daily-brief/"
  },
- "_note_example": "예시 파일 — 실제 config.json(메일 주소 포함)은 저장소에 올리지 않는다"
+ "_note_example": "예시 파일 — 실제 config.json(메일 주소 포함)은 저장소에 올리지 않는다",
+ "remote_api": "(선택) 시연 서버 주소 https://script.google.com/macros/s/…/exec — 비우면 앱에서 챗봇·메일함 확인·API 조회가 숨겨짐"
 }

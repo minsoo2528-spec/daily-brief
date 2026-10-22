@@ -136,6 +136,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 - 목적: 운용사가 판매사 공용 메일로 보내는 공문(설정·캐피탈콜·배당·만기청산·수익자총회 등)에서 일정·금액을 뽑아 '펀드 관리' 탭(BETA, 구 '공문 일정')에 모은다.
 - 현재 단계: **가상 공문으로만 운영**한다. 실제 공용 메일(회사 메일)은 연결하지 않았고, 수익자명·금액 등 고객정보를 외부 AI로 처리해도 되는지 사내 확인 전이다. 실제 메일을 읽거나 다른 메일함을 찾아 연결하지 않는다.
 - 매일 할 일: 두 파일을 그대로 두고 make_brief.py만 실행한다(notices.py가 원문 대조 후 화면 데이터를 만든다. D-day는 실행일 기준으로 자동 계산).
+- 메일함 확인(시연, 사용자 결정 2026-10-22): 펀드 관리 탭에도 '메일함 확인' 버튼이 있다. '공문'이 들어간 최근 14일 Gmail 메일을 읽어 Claude가 일정·금액을 뽑고 페이지 코드가 원문과 대조해 화면에만 더한다(저장 안 함). 작동 조건과 주의는 6-5의 MMF 메일함 확인과 같다.
 - 실제 연결 후 절차(사용자가 지시하면): 새 공문 메일 본문을 받은편지함 파일에 추가 → 공문마다 notice_extract.json에 {id,type,manager,fund,summary,events[{date,label,src}],amounts[{label,investor?,won,src}]} 작성. src는 메일 본문 문구를 그대로 복사하고, date·won은 그 문구에서 읽은 값. notices.py가 원문과 다르면 '확인 필요'로 빼므로 추정으로 채우지 않는다.
 - 공개 범위(사용자 결정 2026-10-21): 받은편지함 파일이 "sample": true(가상)일 때만 앱에도 넣는다. 실제 메일 데이터("sample": false 또는 없음)는 make_brief.py가 앱용 web_public.html에서 자동으로 빼고, build_pages.py가 한 번 더 확인해 섞여 있으면 중단한다(앱 저장소·주소가 공개이므로). claude.ai 팀 페이지에는 항상 넣는다. 고객 PDF·팀 메일에는 넣지 않는다. 실제 메일을 연결할 때는 받은편지함 파일을 새로 만들고 "sample" 키를 넣지 않는다.
 
@@ -143,6 +144,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 - 목적: 고객(제조업·금융기관 등)이 메일로 미리 보내는 MMF 주문("특정일에 특정금액 매수/환매")을 'MMF 주문' 탭(BETA)에 영업일별로 모은다. 펀드 관리(6-4)와 별도 탭.
 - 현재 단계: **가상 주문 메일로만 운영**한다. 실제 메일함은 연결하지 않는다(6-4와 같은 이유).
 - 매일 할 일: 두 파일을 그대로 두고 make_brief.py만 실행한다(mmf_orders.py가 원문 대조 후 오늘부터 10영업일 바둑판·합계를 만든다).
+- 메일함 확인(시연, 사용자 결정 2026-10-22): claude.ai 페이지의 MMF 주문 탭에 '메일함 확인' 버튼이 있다. 보는 사람이 누르면 페이지가 그 사람의 Gmail에서 'MMF'가 들어간 최근 14일 메일(제목에 Daily Brief 포함 메일 제외)을 읽고, Claude가 주문을 뽑고, 페이지 코드가 원문 문구로 실행일·금액·매수/환매를 대조해 화면에만 더한다(저장 안 함, 새로고침하면 사라짐). 이 기능은 아티팩트에 저장된 capabilities(sample + mcp: Gmail search_threads·get_thread)로 작동하므로, 매일 게시할 때 capabilities 인자를 넘기지 않는다(넘기면 꺼진다). 예약 실행은 이 메일을 읽거나 raw 파일에 넣지 않는다. 공개 앱에서는 버튼이 보이지 않는다.
 - 실제 연결 후 절차(사용자가 지시하면): 주문 메일 본문을 받은편지함 파일에 추가 → 주문마다 mmf_extract.json "orders"에 {id, client, side(매수|환매), date, won, src, note?} 작성(한 메일에 주문이 여러 건이면 여러 줄). 고객 업종은 "clients"에 적는다. src는 본문 문구 그대로, date·won·side는 그 문구에서 읽은 값. 어긋나면 '확인 필요'로 합계에서 빠진다.
 - 공개 범위(사용자 결정 2026-10-21): 받은편지함 파일이 "sample": true(가상)일 때만 앱에도 넣는다. 실제 메일 데이터("sample": false 또는 없음)는 make_brief.py가 앱용 web_public.html에서 자동으로 빼고, build_pages.py가 한 번 더 확인해 섞여 있으면 중단한다(앱 저장소·주소가 공개이므로). claude.ai 팀 페이지에는 항상 넣는다. 고객 PDF·팀 메일에는 넣지 않는다. 실제 메일을 연결할 때는 받은편지함 파일을 새로 만들고 "sample" 키를 넣지 않는다.
 
@@ -156,12 +158,13 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 2. 갱신한 raw\*.json을 `engine\raw\`에 되돌려 저장(누적 이력 유지).
 3. 웹: Artifact 도구로 위 URL을 read한 뒤, out/web.html을 같은 url로 publish. `capabilities` 인자는 넘기지 않는다(저장된 `sample` 선언이 그대로 유지되어 'Claude 답변'이 계속 작동한다. `{}`를 넘기면 꺼진다).
 3-2. 앱(GitHub Pages) 갱신 — 사용자가 2026-10-20 지시. 주소 https://minsoo2528-spec.github.io/daily-brief/
-   - add_repo(owner "minsoo2528-spec", repo "daily-brief", access "push")로 저장소를 붙이고 안내대로 `/home/claude/daily-brief`에 clone(이미 있으면 `git fetch origin main && git reset --hard FETCH_HEAD`).
+   - 저장소 준비(2026-10-22 시험으로 확인: 예약 실행에는 add_repo 도구가 없지만 git으로 바로 push 가능). add_repo를 찾거나 기다리지 않는다. `/home/claude/daily-brief`가 있으면 `git -C /home/claude/daily-brief fetch origin main && git -C /home/claude/daily-brief reset --hard FETCH_HEAD`, 없으면 `git clone --depth 1 https://github.com/minsoo2528-spec/daily-brief /home/claude/daily-brief`. 둘 다 실패할 때만 add_repo(owner "minsoo2528-spec", repo "daily-brief", access "push")가 있으면 시도한다.
+   - 브랜치 삭제·GitHub API 쓰기는 프록시가 막는다(403). main에 커밋·push만 한다. 다른 브랜치를 만들지 않는다.
    - `python3 build_pages.py <엔진폴더> /home/claude/daily-brief` (out/web.html + engine\pages\ → index.html·manifest·아이콘·sw.js).
    - `git add -A && git -c user.name=minsoo2528-spec -c user.email=minsoo2528-spec@users.noreply.github.com commit -m "Daily Brief YYYY-MM-DD"` 후 `git push origin main`. 공개 저장소이므로 커밋 작성자에 실제 메일 주소를 쓰지 않는다. 커밋 메시지 끝에는 세션 안내의 attribution 줄을 붙인다.
    - 회사 CI는 팀 페이지와 앱 모두에 표시한다(사용자 결정 2026-10-21, make_brief.py가 이미지로 직접 넣음). `engine\assets\` 폴더 자체는 저장소 engine/ 사본에 올리지 않는다.
    - 저장소의 `engine/`은 코드 사본이다. 그날 PC의 코드(*.py, templates, scrapers, pages, RUNBOOK.md)가 바뀌었으면 같이 덮어쓴다. config.json·raw·out·PDF는 절대 올리지 않는다(메일 주소·자금중개 자료).
-   - push가 거부되면(권한 만료 등) 앱 갱신만 건너뛰고 알림에 "앱 미갱신(이유)"을 적는다. 다른 저장소에 올리지 않는다.
+   - push 후 `git ls-remote origin main`의 해시가 방금 커밋과 같은지 확인한다. push가 거부되면(권한 만료 등) 한 번만 다시 시도하고, 그래도 실패하면 앱 갱신만 건너뛰고 알림에 "앱 미갱신(실패한 명령과 오류 문구 그대로)"을 적는다. 다른 저장소에 올리지 않는다.
    - 메일 본문 링크는 claude.ai 페이지(Claude 답변 포함) 그대로 둔다.
 4. 팀 메일 자동 발송(사용자가 2026-10-20 지시: 매 실행 끝에 config.json "email"."team_to" 주소로 발송).
    - `python3 make_email.py <엔진폴더>` → out/email.json {to, subject, html, text}. 웹 게시(3번)가 끝난 뒤 실행한다.
@@ -177,3 +180,11 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
    - 같은 날 두 번 보내지 않는다: Gmail에서 같은 제목이 오늘 이미 보낸편지함에 있으면 건너뛴다(제목에 '(PDF 첨부 시험)'이 붙은 10/21 시험 메일은 제외).
 5. 사용자에게 SendUserMessage로 3~5줄 알림(기준일, 핵심 3가지, 빠진 항목, 팀 메일 발송 여부)과 PDF(SendUserFile).
 6. 고객 메일 발송은 하지 않는다. 팀원이 검토 후 직접 발송한다.
+
+## 부록. 앱용 시연 서버(사용자 결정 2026-10-22)
+- 목적: claude.ai 밖(설치형 앱·HTML)에서도 Claude 답변과 메일함 확인(MMF·공문)을 쓰게 한다. 발표 시연용.
+- 서버: Google Apps Script 웹앱 "Daily Brief 시연 서버"(minsoo2528 계정, 코드 사본 engine\server\apps_script\). 누구나 접근, minsoo2528 권한으로 실행, Gmail은 읽기 전용, 'MMF'·'공문' 최근 14일 메일만.
+- config.json "remote_api"에 웹앱 주소(https://script.google.com/macros/s/.../exec)가 있으면 make_brief.py가 페이지 데이터(meta.remote_api)에 넣고, 앱·HTML에서는 그 서버를 쓴다. claude.ai 페이지는 기존 방식(보는 사람 계정). 비우면 앱에서 두 기능이 숨겨진다.
+- Claude API 키는 Apps Script 스크립트 속성 ANTHROPIC_API_KEY에만 있다. config.json·저장소·페이지에 넣지 않는다. 예약 실행은 서버를 바꾸지 않는다.
+- 시연이 끝나면 사용자가 Apps Script에서 배포를 '보관(중지)'하고 config.json의 remote_api를 비운다.
+- (참고) engine\server\worker.js는 Cloudflare용 같은 기능의 대안 코드로, 현재 쓰지 않는다.
