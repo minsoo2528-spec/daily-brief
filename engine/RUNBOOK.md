@@ -2,7 +2,7 @@
 
 이 문서는 매 영업일 아침 예약 작업이 그대로 따라 하는 절차다. 모든 수치는 원자료에서 가져오고, 추정값은 넣지 않는다.
 
-- PC 폴더: `C:\Users\202601583\Documents\Daily_Brief`
+- PC 폴더: 실행 PC의 `문서\Daily_Brief` (전체 경로는 예약 작업 지시에 적혀 있음. 공개 저장소에는 PC 사용자 이름을 쓰지 않는다)
   - `inbox\` 팀원이 한국자금중개 「일일 원화자금 현황」 PDF를 저장하는 곳
   - `output\` 고객 전달용 PDF 저장 (`YYYY-MM-DD_Daily_Market_Brief.pdf`)
   - `engine\` 이 문서, `make_brief.py`, `make_email.py`(팀 메일 본문), `build_pages.py`+`pages\`(앱용 GitHub Pages), `templates\`, `raw\`(원자료·누적 이력)
@@ -154,7 +154,7 @@ async function day(d8){ const r=await fetch('/websquare/engine/proworks/callServ
 3. 실패 항목이 있으면 그 섹션만 비우고 이유를 알림에 적는다. 추정값으로 채우지 않는다.
 
 ## 8. 전달
-1. PDF를 `C:\Users\202601583\Documents\Daily_Brief\output\`에 저장(device_commit_files).
+1. PDF를 `문서\Daily_Brief\output\`에 저장(device_commit_files).
 2. 갱신한 raw\*.json을 `engine\raw\`에 되돌려 저장(누적 이력 유지).
 3. 웹: Artifact 도구로 위 URL을 read한 뒤, out/web.html을 같은 url로 publish. `capabilities` 인자는 넘기지 않는다(저장된 `sample` 선언이 그대로 유지되어 'Claude 답변'이 계속 작동한다. `{}`를 넘기면 꺼진다).
 3-2. 앱(GitHub Pages) 갱신 — 사용자가 2026-10-20 지시. 주소 https://minsoo2528-spec.github.io/daily-brief/
